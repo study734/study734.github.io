@@ -10,10 +10,10 @@ describe('portfolio v2 app', () => {
     expect(screen.getByRole('heading', { level: 1, name: '임태욱' })).toBeInTheDocument()
     expect(screen.getByText('Java / Spring Boot Backend Developer')).toBeInTheDocument()
 
-    expect(screen.getByRole('link', { name: 'Projects' })).toHaveAttribute('href', '#projects')
+    expect(screen.getAllByRole('link', { name: 'Projects' })[0]).toHaveAttribute('href', '#projects')
     expect(screen.getByRole('link', { name: 'Experience' })).toHaveAttribute('href', '#experience')
     expect(screen.getByRole('link', { name: 'Stack' })).toHaveAttribute('href', '#stack')
-    expect(screen.getAllByRole('link', { name: 'GitHub' })[0]).toHaveAttribute(
+    expect(screen.getAllByRole('link', { name: /GitHub/i })[0]).toHaveAttribute(
       'href',
       'https://github.com/study734',
     )
