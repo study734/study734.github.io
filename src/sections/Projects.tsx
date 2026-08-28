@@ -1,18 +1,16 @@
-import { ProjectCard } from '../components/ProjectCard'
-import { SectionHeading } from '../components/SectionHeading'
+import { ProjectShowcase } from '../components/ProjectShowcase'
 import { projects } from '../data/projects'
 
 export function Projects() {
   return (
-    <section className="section" id="projects" aria-labelledby="projects-title">
-      <SectionHeading
-        eyebrow="Selected Work"
-        title="Featured Projects"
-        description="프로젝트 자체의 기능과 제가 맡은 기여를 분리해 정리했습니다."
-      />
-      <div className="project-grid">
+    <section className="projects-section" id="projects" aria-labelledby="projects-title">
+      <div className="section-title-row">
+        <span>02</span>
+        <h2 id="projects-title">Selected Projects</h2>
+      </div>
+      <div className="project-list">
         {projects.map((project, index) => (
-          <ProjectCard key={project.name} project={project} index={index} />
+          <ProjectShowcase key={project.name} project={project} index={index} />
         ))}
       </div>
     </section>
