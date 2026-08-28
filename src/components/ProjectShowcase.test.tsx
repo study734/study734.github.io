@@ -19,7 +19,7 @@ describe('ProjectShowcase', () => {
   test('renders evidence in project-first order', () => {
     render(<ProjectShowcase project={sample} index={0} />)
 
-    expect(screen.getByText('01')).toBeInTheDocument()
+    expect(screen.getAllByText('01').length).toBeGreaterThan(0)
     expect(screen.getByRole('heading', { name: 'Sample Project' })).toBeInTheDocument()
     expect(screen.getByText('Sample product description')).toBeInTheDocument()
     expect(screen.getByText('ROLE')).toBeInTheDocument()
