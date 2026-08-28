@@ -1,21 +1,19 @@
 import { Header } from './components/Header'
-import { About } from './sections/About'
-import { Achievements } from './sections/Achievements'
 import { Contact } from './sections/Contact'
-import { Hero } from './sections/Hero'
+import { Experience } from './sections/Experience'
+import { Intro } from './sections/Intro'
 import { Projects } from './sections/Projects'
-import { Skills } from './sections/Skills'
+import { Stack } from './sections/Stack'
 
 export default function App() {
   return (
     <div className="page-shell">
       <Header />
       <main>
-        <Hero />
-        <About />
+        <Intro />
         <Projects />
-        <Skills />
-        <Achievements />
+        <Experience />
+        <Stack />
         <Contact />
       </main>
       <footer className="site-footer">
