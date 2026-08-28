@@ -1,8 +1,12 @@
-import { render, screen } from '@testing-library/react'
+import { cleanup, render, screen } from '@testing-library/react'
 import '@testing-library/jest-dom/vitest'
-import { describe, expect, test } from 'vitest'
+import { afterEach, describe, expect, test } from 'vitest'
 import { ProjectCard } from './ProjectCard'
 import type { Project } from '../data/projects'
+
+afterEach(() => {
+  cleanup()
+})
 
 const sample: Project = {
   name: 'Sample Project',
