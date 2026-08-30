@@ -1,3 +1,4 @@
+import { Button } from '@/components/ui/button'
 import type { Project } from '../data/projects'
 import { TechList } from './TechList'
 
@@ -57,14 +58,18 @@ export function ProjectShowcase({ project, index }: { project: Project; index: n
       {(project.repositoryUrl || project.demoUrl) && (
         <div className="project-links">
           {project.repositoryUrl && (
-            <a href={project.repositoryUrl} target="_blank" rel="noreferrer" aria-label={`${project.name} repository`}>
-              Repository ↗
-            </a>
+            <Button asChild className="project-link-button" variant="outline" size="sm">
+              <a href={project.repositoryUrl} target="_blank" rel="noreferrer" aria-label={`${project.name} repository`}>
+                Repository →
+              </a>
+            </Button>
           )}
           {project.demoUrl && (
-            <a href={project.demoUrl} target="_blank" rel="noreferrer" aria-label={`${project.name} demo`}>
-              Demo ↗
-            </a>
+            <Button asChild className="project-link-button" variant="outline" size="sm">
+              <a href={project.demoUrl} target="_blank" rel="noreferrer" aria-label={`${project.name} demo`}>
+                Demo →
+              </a>
+            </Button>
           )}
         </div>
       )}
