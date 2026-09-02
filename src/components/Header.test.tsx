@@ -8,10 +8,12 @@ afterEach(() => cleanup())
 describe('Header', () => {
   test('exposes the workspace controls', () => {
     let opened = false
-    render(<Header onOpenSidebar={() => { opened = true }} />)
+    render(<Header onToggleSidebar={() => { opened = true }} isSidebarCollapsed={false} theme="dark" onToggleTheme={() => {}} isReviewOpen={false} onToggleReview={() => {}} />)
 
-    fireEvent.click(screen.getByRole('button', { name: '메뉴 열기' }))
+    fireEvent.click(screen.getByRole('button', { name: '왼쪽 패널 전환' }))
     expect(opened).toBe(true)
     expect(screen.getByRole('link', { name: '포트폴리오 검색' })).toHaveAttribute('href', '#portfolio-query')
+    expect(screen.getByRole('button', { name: '화이트 테마로 전환' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: '리뷰 패널 열기' })).toBeInTheDocument()
   })
 })
