@@ -142,7 +142,6 @@ export default function App() {
     : isDetailComposer
       ? '선택한 항목에 대해 더 질문해보세요'
       : '프로젝트나 경험을 입력해보세요'
-  const conversationTitle = activeThread?.title ?? activeProject?.project.name ?? 'Portfolio overview'
 
   return (
     <div className="portfolio-app">
@@ -165,10 +164,10 @@ export default function App() {
         />
 
         <main className="workspace-main">
-          <header className="conversation-titlebar" aria-label="현재 대화">
-            <span><Folder aria-hidden="true" /><strong>{conversationTitle}</strong></span>
+          {activeThread && <header className="conversation-titlebar" aria-label="현재 대화">
+            <span><Folder aria-hidden="true" /><strong>{activeThread.title}</strong></span>
             <button type="button" aria-label="대화 메뉴"><MoreHorizontal /></button>
-          </header>
+          </header>}
           <section className={`workspace-content ${activeProject ? 'is-project-thread' : ''}`} tabIndex={-1} aria-live="polite">
             {activeView === 'home' && (
               <div className="home-view">

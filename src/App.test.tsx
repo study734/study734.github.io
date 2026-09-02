@@ -12,6 +12,7 @@ describe('workspace portfolio app', () => {
     expect(screen.getByRole('heading', { level: 1, name: /임태욱은 무엇을/ })).toBeInTheDocument()
     expect(screen.getByText(/Backend, Security, AI/)).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Overview' })).toBeInTheDocument()
+    expect(screen.queryByLabelText('현재 대화')).not.toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'GitHub' })).toHaveAttribute('href', 'https://github.com/study734')
 
     fireEvent.click(screen.getByRole('button', { name: 'AI 주간 보고서는 어떻게 검증했나요?' }))
