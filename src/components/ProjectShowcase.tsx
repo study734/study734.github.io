@@ -1,4 +1,4 @@
-import { Button } from '@/components/ui/button'
+import { ExternalLink, GitBranch, ShieldCheck, Sparkles, UsersRound } from 'lucide-react'
 import type { Project } from '../data/projects'
 import { TechList } from './TechList'
 
@@ -6,71 +6,34 @@ export function ProjectShowcase({ project, index }: { project: Project; index: n
   const number = String(index + 1).padStart(2, '0')
 
   return (
-    <article className="project-showcase">
-      <header className="project-heading-row">
-        <span className="project-number" aria-hidden="true">{number}</span>
-        <h3>{project.name}</h3>
+    <article className="project-view">
+      <header className="view-header">
+        <div><p className="eyebrow">PROJECT / {number}</p><h1>{project.name}</h1><p>{project.subtitle}</p></div>
+        <span className="view-index" aria-hidden="true">{number}</span>
       </header>
 
-      <div className="project-media">
-        {project.image ? (
-          <img
-            src={project.image.src}
-            alt={project.image.alt}
-            width={project.image.width}
-            height={project.image.height}
-          />
-        ) : (
-          <div className="project-media-placeholder" aria-hidden="true">
-            <span>{number}</span>
-            <strong>{project.name}</strong>
-          </div>
-        )}
+      <div className="project-signal-row" aria-label="Project role">
+        {project.role.map((role, roleIndex) => {
+          const Icon = roleIndex === 0 ? UsersRound : roleIndex === 1 ? ShieldCheck : Sparkles
+          return <span key={role}><Icon aria-hidden="true" />{role}</span>
+        })}
       </div>
 
-      <p className="project-subtitle">{project.subtitle}</p>
-
-      <div className="project-meta-grid">
+      <div className="project-evidence">
         <section>
-          <h4>ROLE</h4>
-          <ul>
-            {project.role.map((item) => (
-              <li key={item}>{item}</li>
-            ))}
-          </ul>
+          <div className="section-label"><span>01</span><h2>Contribution</h2></div>
+          <ul className="evidence-list">{project.contributions.map((item) => <li key={item}>{item}</li>)}</ul>
         </section>
-
         <section>
-          <h4>CONTRIBUTION</h4>
-          <ul>
-            {project.contributions.map((item) => (
-              <li key={item}>{item}</li>
-            ))}
-          </ul>
-        </section>
-
-        <section>
-          <h4>STACK</h4>
+          <div className="section-label"><span>02</span><h2>Technology</h2></div>
           <TechList technologies={project.technologies} />
         </section>
       </div>
 
       {(project.repositoryUrl || project.demoUrl) && (
         <div className="project-links">
-          {project.repositoryUrl && (
-            <Button asChild className="project-link-button" variant="outline" size="sm">
-              <a href={project.repositoryUrl} target="_blank" rel="noreferrer" aria-label={`${project.name} repository`}>
-                Repository →
-              </a>
-            </Button>
-          )}
-          {project.demoUrl && (
-            <Button asChild className="project-link-button" variant="outline" size="sm">
-              <a href={project.demoUrl} target="_blank" rel="noreferrer" aria-label={`${project.name} demo`}>
-                Demo →
-              </a>
-            </Button>
-          )}
+          {project.repositoryUrl && <a href={project.repositoryUrl} target="_blank" rel="noreferrer" aria-label={`${project.name} repository`}><GitBranch aria-hidden="true" /> Repository <ExternalLink aria-hidden="true" /></a>}
+          {project.demoUrl && <a href={project.demoUrl} target="_blank" rel="noreferrer" aria-label={`${project.name} demo`}>Demo <ExternalLink aria-hidden="true" /></a>}
         </div>
       )}
     </article>

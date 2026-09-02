@@ -20,11 +20,11 @@ describe('ProjectShowcase', () => {
     render(<ProjectShowcase project={sample} index={0} />)
 
     expect(screen.getAllByText('01').length).toBeGreaterThan(0)
-    expect(screen.getByRole('heading', { name: 'Sample Project' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { level: 1, name: 'Sample Project' })).toBeInTheDocument()
     expect(screen.getByText('Sample product description')).toBeInTheDocument()
-    expect(screen.getByText('ROLE')).toBeInTheDocument()
-    expect(screen.getByText('CONTRIBUTION')).toBeInTheDocument()
-    expect(screen.getByText('STACK')).toBeInTheDocument()
+    expect(screen.getByText('Backend')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Contribution' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Technology' })).toBeInTheDocument()
     expect(screen.getByText('Implemented report workflow')).toBeInTheDocument()
     expect(screen.getByText('Java')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /Sample Project repository/i })).toHaveAttribute(
