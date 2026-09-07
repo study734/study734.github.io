@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { CheckCircle2, ExternalLink, FileDiff, GitBranch, Layers3, X } from 'lucide-react'
+import { CheckCircle2, ExternalLink, FileDiff, GitBranch, GitCompareArrows, Layers3, X } from 'lucide-react'
 import type { Project } from '../data/projects'
 
 type ReviewTab = 'evidence' | 'stack' | 'links'
@@ -43,6 +43,9 @@ export function ReviewPane({ project, isOpen, onClose }: ReviewPaneProps) {
           <div className="review-list">
             {(project?.contributions ?? ['프로젝트 사이드바에서 검토할 프로젝트를 선택하세요.', '하단 composer에서 /review를 입력해 이 패널을 다시 열 수 있습니다.']).map((item) => (
               <div key={item}><CheckCircle2 aria-hidden="true" /><span>{item}</span></div>
+            ))}
+            {project?.decisions?.map((decision) => (
+              <div key={decision.title}><GitCompareArrows aria-hidden="true" /><span>{decision.title}</span></div>
             ))}
           </div>
         )}

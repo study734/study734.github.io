@@ -29,4 +29,27 @@ describe('portfolio v2 project data', () => {
     const moida = projects.find((project) => project.name === 'MOIDA')
     expect(moida?.repositoryUrl).toBeUndefined()
   })
+
+  test('featured projects carry case-study depth', () => {
+    const featured = projects.filter((project) => project.featured)
+    expect(featured.map((project) => project.name)).toEqual(['GearVia', 'GearVia On-Premise'])
+
+    for (const project of featured) {
+      expect(project.context?.period).toBeTruthy()
+      expect(project.problem).toBeTruthy()
+      expect(project.decisions?.length).toBeGreaterThan(0)
+      expect(project.evidence?.length).toBeGreaterThan(0)
+
+      for (const decision of project.decisions ?? []) {
+        expect(decision.options.length).toBeGreaterThan(1)
+        expect(decision.reason.length).toBeGreaterThan(20)
+      }
+    }
+  })
+
+  test('roles read as engineering roles, not team titles', () => {
+    for (const project of projects) {
+      expect(project.role).not.toContain('부팀장')
+    }
+  })
 })

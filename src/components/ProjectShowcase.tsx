@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { CheckCircle2, ChevronDown, ChevronRight, Code2, ExternalLink, FileText, GitBranch, ShieldCheck, Sparkles, UsersRound } from 'lucide-react'
+import { CheckCircle2, ChevronDown, ChevronRight, Code2, ExternalLink, FileText, GitBranch, GitCompareArrows, ShieldCheck, Sparkles, UsersRound } from 'lucide-react'
 import type { Project, ProjectThread } from '../data/projects'
 import { TechList } from './TechList'
 
@@ -33,6 +33,21 @@ export function ProjectShowcase({ project, index, question, thread, onOpenReview
         <p className="thread-lead"><strong>{project.name}</strong> {thread?.answer ?? '프로젝트의 역할과 구현 근거를 정리했습니다.'}</p>
         {!thread && <p>{project.subtitle}</p>}
 
+        {project.context && (
+          <p className="thread-context" aria-label="프로젝트 개요">
+            <span>{project.context.period}</span>
+            <span>{project.context.team}</span>
+            <span>{project.context.position}</span>
+          </p>
+        )}
+
+        {project.problem && (
+          <section className="thread-section">
+            <h2>해결하려던 문제</h2>
+            <p className="thread-problem">{project.problem}</p>
+          </section>
+        )}
+
         <section className="thread-section">
           <h2>맡은 역할</h2>
           <div className="thread-role-list" aria-label="프로젝트 역할">
@@ -48,19 +63,54 @@ export function ProjectShowcase({ project, index, question, thread, onOpenReview
           <ul className="thread-bullets">{visibleContributions.map((item) => <li key={item}>{item}</li>)}</ul>
         </section>
 
+        {project.decisions && project.decisions.length > 0 && (
+          <section className="thread-section thread-decisions">
+            <h2>기술적 판단</h2>
+            {project.decisions.map((decision) => (
+              <article key={decision.title} className="decision-card">
+                <header><GitCompareArrows aria-hidden="true" /><strong>{decision.title}</strong></header>
+                <p className="decision-situation">{decision.situation}</p>
+                <dl>
+                  <dt>검토</dt>
+                  <dd><ul>{decision.options.map((option) => <li key={option}>{option}</li>)}</ul></dd>
+                  <dt>선택</dt>
+                  <dd>{decision.choice}</dd>
+                  <dt>이유</dt>
+                  <dd>{decision.reason}</dd>
+                </dl>
+              </article>
+            ))}
+          </section>
+        )}
+
         <section className="thread-section">
           <h2>기술 구성</h2>
           <TechList technologies={project.technologies} />
         </section>
 
-        <section className="thread-section thread-verification">
-          <h2>확인할 수 있는 근거</h2>
-          <ul>
-            <li><CheckCircle2 aria-hidden="true" />기여 내용과 사용 기술을 프로젝트 단위로 정리</li>
-            <li><CheckCircle2 aria-hidden="true" />Review 패널에서 Evidence · Stack · Links를 교차 확인</li>
-            {project.repositoryUrl && <li><CheckCircle2 aria-hidden="true" />공개 저장소에서 구현 이력 확인 가능</li>}
-          </ul>
-        </section>
+        {project.evidence && project.evidence.length > 0 && (
+          <section className="thread-section thread-evidence">
+            <h2>확인할 수 있는 근거</h2>
+            <ul>
+              {project.evidence.map((item) => {
+                const body = (
+                  <>
+                    <CheckCircle2 aria-hidden="true" />
+                    <span><strong>{item.label}</strong><small>{item.description}</small></span>
+                    {item.url && <ExternalLink aria-hidden="true" />}
+                  </>
+                )
+                return (
+                  <li key={item.label}>
+                    {item.url
+                      ? <a href={item.url} target="_blank" rel="noreferrer">{body}</a>
+                      : <span className="evidence-static">{body}</span>}
+                  </li>
+                )
+              })}
+            </ul>
+          </section>
+        )}
       </div>
 
       <section className="work-summary-card" aria-label="핵심 작업 요약">
