@@ -8,6 +8,8 @@ import { projects, projectThreads } from './data/projects'
 import { Contact } from './sections/Contact'
 import { Experience } from './sections/Experience'
 import { Stack } from './sections/Stack'
+import { WorkConversation } from './components/WorkConversation'
+import { answerFollowup, followupQuestions, type Exchange } from './data/conversations'
 
 const quickActions = [
   { label: '대표 프로젝트 보기', view: 'project-0' as WorkspaceView, icon: BriefcaseBusiness },
@@ -39,6 +41,8 @@ export default function App() {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
   const [query, setQuery] = useState('')
   const [projectQuestion, setProjectQuestion] = useState('')
+  const [sessionReplies, setSessionReplies] = useState<Record<string, Exchange[]>>({})
+  const [pendingReply, setPendingReply] = useState<{ view: string; reply: Exchange } | null>(null)
   const [helperText, setHelperText] = useState('프로젝트와 경험을 탐색해보세요')
   const [isCommandOpen, setIsCommandOpen] = useState(false)
   const [isReviewOpen, setIsReviewOpen] = useState(false)
@@ -66,6 +70,28 @@ export default function App() {
     return projectThreads[Number(match[1])]?.[Number(match[2])] ?? null
   }, [activeView])
 
+  useEffect(() => {
+    if (!pendingReply) return
+    const reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+    const timer = window.setTimeout(() => {
+      setSessionReplies(current => ({ ...current, [pendingReply.view]: [...(current[pendingReply.view] ?? []), pendingReply.reply] }))
+      setPendingReply(null)
+    }, reducedMotion ? 0 : 900)
+    return () => window.clearTimeout(timer)
+  }, [pendingReply])
+
+  const askQuestion = (reply: Exchange) => {
+    if (!activeThread || pendingReply) return
+    setPendingReply({ view: activeView, reply })
+    setQuery('')
+    setIsCommandOpen(false)
+  }
+
+  const addFollowup = (question: string) => {
+    if (!activeThread || !question.trim()) return
+    askQuestion({ question: question.trim(), answer: answerFollowup(activeThread, question.trim()), stage: '더 알아보기' })
+  }
+
   const toggleSidebar = () => {
     const isMobileViewport = typeof window.matchMedia === 'function' && window.matchMedia('(max-width: 720px)').matches
     if (isMobileViewport) setIsSidebarOpen((open) => !open)
@@ -73,7 +99,9 @@ export default function App() {
   }
 
   const navigate = (view: WorkspaceView, question = '') => {
+    setPendingReply(null)
     setActiveView(view)
+    setQuery('')
     if (view.startsWith('project-')) {
       setProjectQuestion(question)
       const project = projects[projectIndexFromView(view) ?? -1]
@@ -85,7 +113,10 @@ export default function App() {
     }
     setIsSidebarOpen(false)
     setIsCommandOpen(false)
-    window.requestAnimationFrame(() => document.querySelector<HTMLElement>('.workspace-content')?.focus())
+    window.requestAnimationFrame(() => {
+      const content = document.querySelector<HTMLElement>('.workspace-content')
+      if (content) { content.scrollTop = 0; content.focus() }
+    })
   }
 
   const filteredCommands = useMemo(() => {
@@ -112,6 +143,10 @@ export default function App() {
     if (!normalized) return
 
     const submittedQuestion = query.trim()
+    if (activeThread && !normalized.startsWith('/')) {
+      addFollowup(submittedQuestion)
+      return
+    }
     const matched = commands.find(({ label, keywords }) => `${label} ${keywords}`.toLowerCase().includes(normalized))
     if (matched) runCommand(matched.target, matched.label)
     else if (normalized.includes('기술') || normalized.includes('stack')) navigate('stack')
@@ -168,7 +203,7 @@ export default function App() {
             <span><Folder aria-hidden="true" /><strong>{activeThread.title}</strong></span>
             <button type="button" aria-label="대화 메뉴"><MoreHorizontal /></button>
           </header>}
-          <section className={`workspace-content ${activeProject ? 'is-project-thread' : ''}`} tabIndex={-1} aria-live="polite">
+          <section className={`workspace-content ${activeProject ? 'is-project-thread' : ''} ${activeThread ? 'has-conversation' : ''}`} tabIndex={-1}>
             {activeView === 'home' && (
               <div className="home-view">
                 <div className="home-mark" aria-hidden="true"><Sparkles /></div>
@@ -190,14 +225,17 @@ export default function App() {
               </div>
             )}
 
-            {activeProject && <ProjectShowcase project={activeProject.project} index={activeProject.index} question={projectQuestion} thread={activeThread} onOpenReview={() => setIsReviewOpen(true)} />}
+            {activeThread ? <WorkConversation key={activeView} thread={activeThread} replies={sessionReplies[activeView] ?? []} pending={pendingReply?.view === activeView ? pendingReply.reply : null} onAsk={askQuestion} onOpenReview={() => setIsReviewOpen(true)} /> : activeProject && <ProjectShowcase project={activeProject.project} index={activeProject.index} question={projectQuestion} onOpenReview={() => setIsReviewOpen(true)} />}
             {activeView === 'experience' && <Experience />}
             {activeView === 'stack' && <Stack />}
             {activeView === 'contact' && <Contact />}
           </section>
 
-          <div className={`composer-dock ${isDetailComposer ? 'is-detail-composer' : ''}`}>
-            {isCommandOpen && (
+          <div className={`composer-dock ${isDetailComposer ? 'is-detail-composer' : ''} ${activeThread ? 'is-conversation-composer' : ''}`}>
+            {activeThread && <div className="conversation-followups" aria-label="추천 후속 질문">
+              {followupQuestions.map(question => <button type="button" key={question} disabled={!!pendingReply} onClick={() => addFollowup(question)}>{question}</button>)}
+            </div>}
+            {isCommandOpen && (!activeThread || query.startsWith('/')) && (
               <div className="command-menu" id="portfolio-command-menu" role="listbox" aria-label="탐색 명령">
                 <div className="command-menu-heading"><span>빠른 탐색</span><kbd>ESC</kbd></div>
                 {filteredCommands.length > 0 ? filteredCommands.map((command) => (
@@ -223,16 +261,16 @@ export default function App() {
                 onFocus={() => setIsCommandOpen(true)}
                 onBlur={() => window.setTimeout(() => setIsCommandOpen(false), 100)}
                 onKeyDown={(event) => { if (event.key === 'Escape') setIsCommandOpen(false) }}
-                placeholder={composerPlaceholder}
+                placeholder={activeThread ? '선택 이유·한계·담당 역할을 물어보세요' : composerPlaceholder}
                 autoComplete="off"
-                aria-expanded={isCommandOpen}
+                aria-expanded={isCommandOpen && (!activeThread || query.startsWith('/'))}
                 aria-controls="portfolio-command-menu"
               />
               <div className="composer-footer">
                 {isDetailComposer
                   ? <button className="composer-context-action" type="button" onClick={() => document.getElementById('portfolio-query')?.focus()}><Plus aria-hidden="true" /><span>{activeProject ? '프로젝트 질문' : '선택 항목 질문'}</span></button>
                   : <span>{helperText}</span>}
-                <button type="submit" aria-label="탐색하기" disabled={!query.trim()}><ArrowUp aria-hidden="true" /></button>
+                <button type="submit" aria-label="탐색하기" disabled={!query.trim() || !!pendingReply}><ArrowUp aria-hidden="true" /></button>
               </div>
             </form>
           </div>

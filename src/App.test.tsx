@@ -1,9 +1,11 @@
-import { cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import '@testing-library/jest-dom/vitest'
-import { afterEach, describe, expect, test } from 'vitest'
+import { afterEach, describe, expect, test, vi } from 'vitest'
 import App from './App'
 
-afterEach(() => cleanup())
+afterEach(() => { cleanup(); vi.useRealTimers(); vi.unstubAllGlobals() })
+
+const finishAnswer = () => act(() => { vi.advanceTimersByTime(1000) })
 
 describe('workspace portfolio app', () => {
   test('renders the overview and opens project evidence', () => {
@@ -16,12 +18,12 @@ describe('workspace portfolio app', () => {
     expect(screen.getByRole('link', { name: 'GitHub' })).toHaveAttribute('href', 'https://github.com/study734')
 
     fireEvent.click(screen.getByRole('button', { name: 'AI 주간 보고서는 어떻게 검증했나요?' }))
-    expect(screen.getAllByText('AI 주간 보고서는 어떻게 검증했나요?')).toHaveLength(3)
-    expect(screen.getByRole('heading', { level: 2, name: '이 대화의 답변 근거' })).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: /저장소 보기/i })).toHaveAttribute('href', 'https://github.com/HO-0219/WorkTaskFlow')
+    expect(screen.getByLabelText('현재 대화')).toHaveTextContent('AI 주간 보고서는 어떻게 검증했나요?')
+    expect(screen.getByRole('region', { name: '프로젝트 핵심 요약' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: '변경 내용 · PR' })).toHaveAttribute('href', 'https://github.com/HO-0219/WorkTaskFlow/pull/2')
     expect(screen.queryByLabelText('현재 포트폴리오 정보')).not.toBeInTheDocument()
     expect(screen.getByRole('button', { name: '프로젝트 질문' })).toBeInTheDocument()
-    expect(screen.getByRole('textbox', { name: '포트폴리오 탐색' })).toHaveAttribute('placeholder', 'GearVia에 대해 더 질문해보세요')
+    expect(screen.getByRole('textbox', { name: '포트폴리오 탐색' })).toHaveAttribute('placeholder', '선택 이유·한계·담당 역할을 물어보세요')
   })
 
   test('uses the command composer to navigate', () => {
@@ -58,23 +60,68 @@ describe('workspace portfolio app', () => {
   })
 
   test('opens a project conversation from the sidebar history', () => {
+    vi.useFakeTimers()
     render(<App />)
 
     fireEvent.click(screen.getByRole('button', { name: 'AI 주간 보고서는 어떻게 검증했나요?' }))
 
-    expect(screen.getAllByText('AI 주간 보고서는 어떻게 검증했나요?')).toHaveLength(3)
+    expect(screen.getByText('AI가 만든 결과를 그대로 보여줘도 괜찮을까?')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'AI 주간 보고서는 어떻게 검증했나요?' })).toHaveClass('is-active')
-    expect(screen.getByText(/AI 주간 리포트의 입력 검증/)).toBeInTheDocument()
+    expect(screen.queryByText(/구조화 출력 계약을 정의/)).not.toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: /AI가 만든 결과를 그대로/ }))
+    expect(screen.getByRole('status')).toHaveTextContent('기록을 정리하는 중')
+    expect(screen.queryByText(/구조화 출력 계약을 정의/)).not.toBeInTheDocument()
+    finishAnswer()
+    expect(screen.queryByRole('status')).not.toBeInTheDocument()
+    expect(screen.getByText(/구조화 출력 계약을 정의/)).toBeInTheDocument()
     expect(screen.getByLabelText('현재 대화')).toHaveTextContent('AI 주간 보고서는 어떻게 검증했나요?')
   })
 
   test('shows a distinct answer for each project conversation record', () => {
+    vi.useFakeTimers()
     render(<App />)
 
     fireEvent.click(screen.getByRole('button', { name: 'Java RAG 브랜치에서 맡은 역할' }))
 
-    expect(screen.getByText(/문서 수집부터 검색 응답까지의 흐름/)).toBeInTheDocument()
-    expect(screen.queryByText(/AI 주간 리포트의 입력 검증/)).not.toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: /다른 팀 자료가 검색되면/ }))
+    finishAnswer()
+    expect(screen.getByText(/서버의 인증된 현재 그룹으로 제한/)).toBeInTheDocument()
+    expect(screen.queryByText(/구조화 출력 계약을 정의/)).not.toBeInTheDocument()
+  })
+
+  test('presents evidence and personal scope before the reconstructed conversation', () => {
+    render(<App />)
+    fireEvent.click(screen.getByRole('button', { name: 'Java RAG 브랜치에서 맡은 역할' }))
+    const brief = screen.getByRole('region', { name: '프로젝트 핵심 요약' })
+    expect(within(brief).getByText('해결한 문제')).toBeInTheDocument()
+    expect(within(brief).getByText('내 역할')).toBeInTheDocument()
+    expect(within(brief).getByText('결과와 검증')).toBeInTheDocument()
+    expect(within(brief).getByRole('link', { name: '변경 내용 · PR' })).toHaveAttribute('href', 'https://github.com/HO-0219/WorkTaskFlow/pull/5')
+    const story = screen.getByRole('heading', { name: '질문으로 읽는 문제 해결 과정' })
+    expect(brief.compareDocumentPosition(story) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    expect(screen.getByText(/실제 AI 작업 로그나 실시간 AI 응답이 아닙니다/)).toBeInTheDocument()
+    expect(screen.getByRole('textbox')).toHaveAttribute('placeholder', '선택 이유·한계·담당 역할을 물어보세요')
+  })
+
+  test('appends followups in the current session and preserves them across navigation', () => {
+    vi.useFakeTimers()
+    render(<App />)
+    fireEvent.click(screen.getByRole('button', { name: 'Java RAG 브랜치에서 맡은 역할' }))
+    fireEvent.click(screen.getByRole('button', { name: '직접 맡은 부분은요?' }))
+    expect(screen.getByRole('button', { name: '직접 맡은 부분은요?' })).toBeDisabled()
+    finishAnswer()
+    const replies = () => within(screen.getByLabelText('추가 질문과 답변'))
+    expect(replies().getByText('직접 맡은 부분은요?')).toBeInTheDocument()
+    expect(screen.getByLabelText('현재 대화')).toHaveTextContent('Java RAG 브랜치에서 맡은 역할')
+    fireEvent.change(screen.getByRole('textbox'), { target: { value: '관련 없는 질문입니다' } })
+    fireEvent.click(screen.getByRole('button', { name: '탐색하기' }))
+    finishAnswer()
+    expect(replies().getByText(/아직 작업 기록에 정리되어 있지/)).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'AI 주간 보고서는 어떻게 검증했나요?' }))
+    expect(replies().queryByText('직접 맡은 부분은요?')).not.toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Java RAG 브랜치에서 맡은 역할' }))
+    expect(replies().getByText('직접 맡은 부분은요?')).toBeInTheDocument()
+    expect(replies().getByText('관련 없는 질문입니다')).toBeInTheDocument()
   })
 
   test('uses project folders only to open and close their conversation records', () => {
@@ -86,6 +133,36 @@ describe('workspace portfolio app', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'GearVia' }))
     expect(screen.getByRole('button', { name: 'AI 주간 보고서는 어떻게 검증했나요?' })).toBeInTheDocument()
+  })
+
+  test('cancels preparation when leaving a session without leaking or duplicating replies', () => {
+    vi.useFakeTimers()
+    render(<App />)
+    fireEvent.click(screen.getByRole('button', { name: 'Java RAG 브랜치에서 맡은 역할' }))
+    const question = screen.getByRole('button', { name: /다른 팀 자료가 검색되면/ })
+    fireEvent.click(question)
+    fireEvent.click(question)
+    expect(screen.getAllByRole('status')).toHaveLength(1)
+    fireEvent.click(screen.getByRole('button', { name: 'AI 주간 보고서는 어떻게 검증했나요?' }))
+    finishAnswer()
+    expect(screen.getByLabelText('추가 질문과 답변')).toBeEmptyDOMElement()
+    fireEvent.click(screen.getByRole('button', { name: 'Java RAG 브랜치에서 맡은 역할' }))
+    expect(screen.queryByRole('status')).not.toBeInTheDocument()
+    expect(screen.getByLabelText('추가 질문과 답변')).toBeEmptyDOMElement()
+    fireEvent.click(screen.getByRole('button', { name: /다른 팀 자료가 검색되면/ }))
+    finishAnswer()
+    expect(within(screen.getByLabelText('추가 질문과 답변')).getAllByText(/서버의 인증된 현재 그룹으로 제한/)).toHaveLength(1)
+  })
+
+  test('skips the preparation delay for reduced motion', () => {
+    vi.useFakeTimers()
+    vi.stubGlobal('matchMedia', vi.fn((query: string) => ({ matches: query === '(prefers-reduced-motion: reduce)' })))
+    render(<App />)
+    fireEvent.click(screen.getByRole('button', { name: 'Java RAG 브랜치에서 맡은 역할' }))
+    fireEvent.click(screen.getByRole('button', { name: /다른 팀 자료가 검색되면/ }))
+    act(() => { vi.advanceTimersByTime(0) })
+    expect(screen.queryByRole('status')).not.toBeInTheDocument()
+    expect(screen.getByText(/서버의 인증된 현재 그룹으로 제한/)).toBeInTheDocument()
   })
 
   test('toggles the desktop project sidebar from the top bar', () => {

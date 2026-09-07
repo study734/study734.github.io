@@ -79,7 +79,7 @@ export function Sidebar({ activeView, isOpen, onClose, onNavigate, theme, onTogg
                   </button>
                   {isExpanded && <div className="project-threads" aria-label={`${project.name} 대화 기록`}>
                     {projectThreads[index].map((thread, threadIndex) => (
-                      <button className={activeView === `project-${index}-thread-${threadIndex}` ? 'is-active' : ''} type="button" key={thread.title} onClick={() => onNavigate(`project-${index}-thread-${threadIndex}` as WorkspaceView, thread.title)}>
+                      <button className={activeView === `project-${index}-thread-${threadIndex}` ? 'is-active' : ''} type="button" key={thread.title} title={thread.title} onClick={() => onNavigate(`project-${index}-thread-${threadIndex}` as WorkspaceView, thread.title)}>
                         <FileText aria-hidden="true" />
                         <span>{thread.title}</span>
                       </button>

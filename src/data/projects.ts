@@ -84,7 +84,7 @@ export const projectThreads: ProjectThread[][] = [
     {
       title: 'Java RAG 브랜치에서 맡은 역할',
       answer: '문서 수집부터 검색 응답까지의 흐름을 서비스에 연결하고, 결과를 확인할 수 있는 구현 경로를 정리했습니다.',
-      contributions: ['AI 주간 리포트 기능 설계 및 구현', '개발 환경 및 협업 방식 지원'],
+      contributions: ['문서 추출·청킹·임베딩과 인용 검색 구현', '인증된 그룹 범위 검색과 색인 테스트'],
     },
   ],
   [

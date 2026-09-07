@@ -1,10 +1,10 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
-@import "@fontsource-variable/geist";
+@import "pretendard/dist/web/variable/pretendardvariable-dynamic-subset.css";
 
 :root {
-  font-family: "Geist Variable", "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   color: #ececec;
   background: #181818;
   font-synthesis: none;
@@ -137,6 +137,18 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline: 2px solid 
 .project-threads button { min-height: 30px; display: grid; grid-template-columns: 15px minmax(0, 1fr); align-items: center; gap: 6px; padding: 0 8px 0 10px; font-size: 0.7rem; }
 .project-threads svg { width: 12px; height: 12px; color: var(--faint); }
 .project-threads span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sidebar-navigation button, .sidebar-navigation a, .profile-group button,
+.project-folder-trigger, .project-threads button {
+  font-size: 0.875rem;
+  font-weight: 400;
+  line-height: 1.45;
+  letter-spacing: -0.01em;
+  color: var(--text);
+}
+.project-threads button { min-height: 32px; }
+.sidebar-group > p { font-size: 0.8125rem; font-weight: 500; letter-spacing: 0; }
+.identity-brand, .identity strong { font-size: 0.9375rem; }
+.identity small { font-size: 0.75rem; }
 .sidebar-account {
   position: relative;
   margin-top: auto;
@@ -149,7 +161,7 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline: 2px solid 
 .account-trigger:hover, .account-trigger[aria-expanded='true'] { background: var(--surface-hover); }
 .account-avatar { width: 27px; height: 27px; display: grid; place-items: center; border-radius: 50%; background: #ba5d55; color: #fff; font-size: 0.62rem; font-weight: 650; }
 .account-trigger > span:nth-child(2), .account-menu-profile > span:last-child { min-width: 0; display: grid; }
-.account-trigger strong { color: var(--text); font-size: 0.74rem; font-weight: 580; }
+.account-trigger strong { color: var(--text); font-size: 0.875rem; font-weight: 500; }
 .account-trigger small { margin-top: 2px; overflow: hidden; color: var(--faint); font-size: 0.62rem; text-overflow: ellipsis; white-space: nowrap; }
 .account-trigger > svg { width: 15px; color: var(--faint); }
 .account-menu {
@@ -262,6 +274,57 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline: 2px solid 
 .composer-context-action svg { width: 15px; height: 15px; }
 
 .project-thread { width: min(790px, 100%); margin: 0 auto; animation: view-in 260ms ease-out; }
+.workspace-content.has-conversation { padding-bottom: 24px; }
+.composer-dock.is-conversation-composer { position: relative; left: auto; bottom: auto; transform: none; align-self: center; flex-shrink: 0; margin: 12px auto 16px; }
+.conversation-note { margin: 16px 0 34px; color: var(--faint); font-size: 0.7rem; line-height: 1.6; }
+.conversation-summary { padding: 24px 0 30px; border-bottom: 1px solid var(--line); }
+.conversation-summary h1 { margin: 0 0 24px; font-size: clamp(1.2rem, 2.3vw, 1.65rem); font-weight: 600; line-height: 1.4; letter-spacing: -0.03em; }
+.conversation-summary dl { display: grid; gap: 18px; margin: 0; }
+.conversation-summary dt { margin-bottom: 5px; color: var(--muted); font-size: 0.72rem; font-weight: 600; }
+.conversation-summary dd { margin: 0; color: var(--text); font-size: 0.84rem; line-height: 1.75; overflow-wrap: anywhere; }
+.conversation-summary ul { margin: 0; padding-left: 18px; }
+.conversation-summary footer { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 22px; }
+.conversation-summary footer a, .conversation-summary footer button { display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 7px 11px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); color: var(--text); font: inherit; font-size: 0.73rem; cursor: pointer; }
+.conversation-summary footer a:hover, .conversation-summary footer button:hover { background: var(--surface-hover); }
+.conversation-summary footer svg { width: 14px; height: 14px; }
+.conversation-story-title { margin: 30px 0 0; font-size: 0.9rem; font-weight: 600; }
+.conversation-exchange { margin: 0 0 38px; scroll-margin-top: 20px; }
+.conversation-stage { display: flex; align-items: center; gap: 9px; margin-top: 24px; padding-bottom: 10px; border-bottom: 1px solid var(--line); color: var(--muted); font-size: 0.72rem; }
+.conversation-stage > span { color: var(--faint); font-size: 0.65rem; }
+.work-conversation .thread-answer { padding-top: 15px; }
+.work-conversation .thread-answer > p { color: var(--text); line-height: 1.85; }
+.conversation-result { margin: 12px 0 40px; padding: 18px; border: 1px solid var(--line); border-radius: 14px; background: var(--panel); font-size: 0.8rem; line-height: 1.8; }
+.conversation-result h2 { margin: 0 0 10px; font-size: 0.86rem; font-weight: 600; }
+.conversation-result ul { margin: 0 0 16px; padding-left: 20px; }
+.conversation-result details { color: var(--muted); }
+.conversation-result summary { cursor: pointer; }
+.conversation-result footer { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
+.conversation-result footer a, .conversation-result footer button { display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; border: 1px solid var(--line); border-radius: 7px; background: transparent; color: var(--text); cursor: pointer; font-size: 0.73rem; }
+.conversation-result footer svg { width: 14px; height: 14px; }
+.conversation-result footer a:hover, .conversation-result footer button:hover { background: var(--surface-hover); }
+.conversation-followups { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 9px; }
+.conversation-followups button { padding: 7px 10px; border: 1px solid var(--line); border-radius: 9px; background: var(--panel); color: var(--muted); font-size: 0.71rem; cursor: pointer; }
+.conversation-followups button:hover { background: var(--surface-hover); color: var(--text); }
+.conversation-followups button:disabled { opacity: 0.45; cursor: default; }
+.conversation-questions { margin: 24px 0 12px; }
+.conversation-questions h3 { margin: 0 0 12px; color: var(--muted); font-size: 0.75rem; font-weight: 500; }
+.conversation-questions button { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 5px 12px; width: 100%; margin: 0 0 6px; padding: 13px 15px; border: 1px solid var(--line); border-radius: 10px; background: transparent; color: var(--text); text-align: left; cursor: pointer; }
+.conversation-questions button > span { color: var(--muted); font-size: 0.68rem; }
+.conversation-questions button > strong { grid-column: 1; font-size: 0.82rem; font-weight: 450; line-height: 1.6; overflow-wrap: anywhere; }
+.conversation-questions button > small { grid-column: 2; grid-row: 1 / 3; align-self: center; color: var(--faint); font-size: 0.68rem; }
+.conversation-questions button:hover:not(:disabled) { background: var(--surface-hover); }
+.conversation-questions button:disabled { opacity: 0.5; cursor: default; }
+.conversation-questions button:focus-visible, .conversation-followups button:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.work-conversation .thread-answer { padding-top: 28px; }
+.work-conversation .thread-answer > p { max-width: 68ch; line-height: 1.95; word-break: keep-all; overflow-wrap: anywhere; }
+.conversation-thinking { display: flex; align-items: center; gap: 10px; min-height: 90px; color: var(--muted); font-size: 0.82rem; }
+.thinking-orb { width: 12px; height: 12px; flex-shrink: 0; border-radius: 50%; background: currentColor; animation: thinking-breathe 1.2s ease-in-out infinite; }
+.thinking-label { background: linear-gradient(100deg, var(--faint) 25%, var(--text) 50%, var(--faint) 75%); background-size: 220% 100%; background-clip: text; color: transparent; animation: thinking-shimmer 1.5s linear infinite; }
+.revealed-answer { animation: answer-appear 200ms ease-out; }
+@keyframes thinking-breathe { 0%, 100% { opacity: 0.4; transform: scale(0.75); } 50% { opacity: 1; transform: scale(1); } }
+@keyframes thinking-shimmer { from { background-position: 100% 0; } to { background-position: -100% 0; } }
+@keyframes answer-appear { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+@media (prefers-reduced-motion: reduce) { .thinking-orb, .thinking-label, .revealed-answer { animation: none; } .thinking-label { background: none; color: var(--muted); } }
 .thread-question { min-height: 54px; display: flex; justify-content: flex-end; align-items: flex-start; padding-top: 4px; }
 .thread-question p { max-width: min(520px, 82%); margin: 0; padding: 12px 16px; border-radius: 18px 18px 5px 18px; background: var(--accent-soft); color: var(--text); font-size: 0.88rem; line-height: 1.55; }
 .thread-progress { margin-top: 8px; border-bottom: 1px solid var(--line); }
