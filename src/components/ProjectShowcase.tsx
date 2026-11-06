@@ -35,7 +35,7 @@ export function ProjectShowcase({ project, index, question, thread, onOpenReview
 
         {project.context && (
           <p className="thread-context" aria-label="프로젝트 개요">
-            <span>{project.context.period}</span>
+            {project.context.period && <span>{project.context.period}</span>}
             <span>{project.context.team}</span>
             <span>{project.context.position}</span>
           </p>

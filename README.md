@@ -18,12 +18,20 @@ npm run build
 
 ## Deployment
 
-Pushes to `main` are tested, built with Vite, and deployed to GitHub Pages through GitHub Actions.
+Deployed on Vercel. Pushes to `main` go to production; other branches get preview deployments. Pull requests are verified by `.github/workflows/ci.yml` (test + build).
 
-Live URL: https://study734.github.io
+Live URL: https://taewook-im.vercel.app
+
+Each view has its own shareable link, e.g. `https://taewook-im.vercel.app/#/project-0` (GearVia), `#/stack`, `#/contact`.
+
+## Editing content
+
+- Name, role, GitHub and email: `src/data/profile.ts`
+- Projects and case studies: `src/data/projects.ts`
+- Conversation records: `src/data/conversations.ts`
 
 ## Structure
 
 - Profile README: https://github.com/study734
-- Portfolio: https://study734.github.io
+- Portfolio: https://taewook-im.vercel.app
 - Detailed technical evidence: linked project repositories and their README files
