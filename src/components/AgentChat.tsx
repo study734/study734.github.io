@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
-import { ArrowUpRight, Check, ChevronDown, CornerDownRight, ExternalLink, GitBranch, Mail, Search } from 'lucide-react'
-import { starterQuestions, type AgentRun } from '../agent/engine'
+import { ArrowUpRight, BriefcaseBusiness, Check, ChevronDown, Code2, Compass, CornerDownRight, ExternalLink, GitBranch, Mail, Search } from 'lucide-react'
+import { audienceOptions, starterQuestions, type AgentRun, type Audience } from '../agent/engine'
+import { AgentHandoff } from './AgentHandoff'
 import { mailtoUrl, profile } from '../data/profile'
 import { projects } from '../data/projects'
 import type { WorkspaceView } from './Sidebar'
@@ -12,14 +13,17 @@ interface AgentChatProps {
   onAsk: (question: string) => void
   onNavigate: (view: WorkspaceView) => void
   onSettled: (id: number) => void
+  onChooseAudience: (audience: Audience) => void
   busy: boolean
 }
+
+const audienceIcons = { recruiter: BriefcaseBusiness, developer: Code2, browse: Compass }
 
 const STEP_MS = 420
 const BLOCK_MS = 160
 const prefersReducedMotion = () => !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
 
-export function AgentChat({ messages, onAsk, onNavigate, onSettled, busy }: AgentChatProps) {
+export function AgentChat({ messages, onAsk, onNavigate, onSettled, onChooseAudience, busy }: AgentChatProps) {
   const latest = useRef<HTMLDivElement>(null)
   useEffect(() => {
     if (messages.length) latest.current?.scrollIntoView?.({ block: 'start', behavior: prefersReducedMotion() ? 'auto' : 'smooth' })
@@ -29,17 +33,33 @@ export function AgentChat({ messages, onAsk, onNavigate, onSettled, busy }: Agen
     return (
       <div className="agent-intro">
         <div className="agent-avatar is-large" aria-hidden="true">TW</div>
-        <p className="eyebrow">PORTFOLIO AGENT</p>
-        <h1>임태욱에 대해<br />무엇이든 물어보세요</h1>
+        <p className="eyebrow">PORTFOLIO ASSISTANT</p>
+        <h1>안녕하세요,<br />{profile.name} 님의 비서예요</h1>
         <p className="agent-intro-copy">
-          포트폴리오 기록을 검색해서 답하는 agent입니다.<br />{' '}
-          프로젝트, 기술적 판단, 기술 스택, 경험을 근거와 함께 알려드려요.
+          태욱 님에 대해 궁금한 걸 물어보시면,<br />{' '}
+          정리해 둔 기록을 근거로 소개해 드릴게요.
         </p>
         <p className="home-profile">
           <span className="home-profile-dot" aria-hidden="true" />
           <strong>{profile.name}</strong>
           <span>{profile.summary}</span>
         </p>
+
+        <section className="agent-audience" aria-labelledby="agent-audience-title">
+          <h2 id="agent-audience-title">어떤 일로 오셨어요?</h2>
+          <div>
+            {audienceOptions.map(({ id, label, description }) => {
+              const Icon = audienceIcons[id]
+              return (
+                <button type="button" key={id} disabled={busy} onClick={() => onChooseAudience(id)}>
+                  <Icon aria-hidden="true" />
+                  <span><strong>{label}</strong><small>{description}</small></span>
+                </button>
+              )
+            })}
+          </div>
+        </section>
+
         <div className="agent-starters" aria-label="추천 질문">
           {starterQuestions.map((question) => (
             <button type="button" key={question} disabled={busy} onClick={() => onAsk(question)}>
@@ -51,20 +71,21 @@ export function AgentChat({ messages, onAsk, onNavigate, onSettled, busy }: Agen
     )
   }
 
+  const transcript = messages.map((message) => message.question)
   return (
     <div className="agent-thread" aria-label="agent 대화">
       {messages.map((message, index) => (
         <div className="agent-exchange" key={message.id} ref={index === messages.length - 1 ? latest : undefined}>
           <div className="thread-question"><p>{message.question}</p></div>
-          <AgentReply message={message} isLatest={index === messages.length - 1} busy={busy} onAsk={onAsk} onNavigate={onNavigate} onSettled={onSettled} />
+          <AgentReply message={message} transcript={transcript} isLatest={index === messages.length - 1} busy={busy} onAsk={onAsk} onNavigate={onNavigate} onSettled={onSettled} />
         </div>
       ))}
-      <p className="agent-footnote">답변은 포트폴리오에 정리된 기록에서 찾은 내용만 사용합니다. 기록에 없는 내용은 답하지 않아요.</p>
+      <p className="agent-footnote">비서는 태욱 님이 정리해 둔 포트폴리오 기록으로만 답해요. 기록에 없는 내용은 태욱 님께 전달해 드려요.</p>
     </div>
   )
 }
 
-function AgentReply({ message, isLatest, busy, onAsk, onNavigate, onSettled }: { message: AgentMessage; isLatest: boolean; busy: boolean } & Pick<AgentChatProps, 'onAsk' | 'onNavigate' | 'onSettled'>) {
+function AgentReply({ message, transcript, isLatest, busy, onAsk, onNavigate, onSettled }: { message: AgentMessage; transcript: string[]; isLatest: boolean; busy: boolean } & Pick<AgentChatProps, 'onAsk' | 'onNavigate' | 'onSettled'>) {
   const { run } = message
   const total = run.steps.length + run.blocks.length
   const [progress, setProgress] = useState(() => (message.animate && !prefersReducedMotion() ? 0 : total))
@@ -92,7 +113,7 @@ function AgentReply({ message, isLatest, busy, onAsk, onNavigate, onSettled }: {
     <div className="agent-reply">
       <div className="agent-reply-header">
         <span className="agent-avatar" aria-hidden="true">TW</span>
-        <strong>임태욱 agent</strong>
+        <strong>태욱 님의 비서</strong>
       </div>
 
       <div className={`agent-steps ${stepsOpen || thinking ? 'is-open' : ''}`}>
@@ -120,11 +141,15 @@ function AgentReply({ message, isLatest, busy, onAsk, onNavigate, onSettled }: {
       <div className="agent-answer" aria-live="polite">
         {run.blocks.slice(0, visibleBlocks).map((block, index) => {
           if (block.type === 'text') return <p key={index} className="revealed-answer">{block.text}</p>
+          if (block.type === 'list') return <ul key={index} className="agent-list revealed-answer">{block.items.map((item) => <li key={item}>{item}</li>)}</ul>
+          if (block.type === 'handoff') return <div key={index} className="revealed-answer"><AgentHandoff question={block.question} transcript={transcript} /></div>
           if (block.type === 'point') return (
             <div key={index} className="agent-point revealed-answer">
               <strong>{block.title}</strong>
               <p>{block.text}</p>
-              <small>{block.source}</small>
+              {block.url
+                ? <a href={block.url} target="_blank" rel="noreferrer">{block.source}<ExternalLink aria-hidden="true" /></a>
+                : <small>{block.source}</small>}
             </div>
           )
           if (block.type === 'projects') return (

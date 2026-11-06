@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
 import { ArrowUp, Bot, Folder, GitBranch, MoreHorizontal, Plus, ShieldCheck, Sparkles } from 'lucide-react'
 import { AgentChat, type AgentMessage } from './components/AgentChat'
-import { runAgent } from './agent/engine'
+import { audienceOptions, runAgent, tourFor, type Audience } from './agent/engine'
 import { Header } from './components/Header'
 import { ProjectShowcase } from './components/ProjectShowcase'
 import { ReviewPane } from './components/ReviewPane'
@@ -34,7 +34,7 @@ const projectIndexFromView = (view: WorkspaceView) => {
   return match ? Number(match[1]) : null
 }
 
-const homeHelper = '포트폴리오 기록을 검색해 답합니다 · / 로 화면 이동'
+const homeHelper = '정리된 기록을 근거로 답해요 · / 로 화면 이동'
 
 const commands = [
   { label: '/review 프로젝트 검토', hint: '기여·기술·링크를 리뷰 패널에서 봅니다', target: 'review' as CommandTarget, keywords: '/review 리뷰 review diff 증거' },
@@ -177,6 +177,13 @@ export default function App() {
     setIsCommandOpen(false)
   }
 
+  const chooseAudience = (audience: Audience) => {
+    if (agentBusy) return
+    const option = audienceOptions.find((item) => item.id === audience)
+    if (!option) return
+    setAgentMessages((current) => [...current, { id: Date.now() + current.length, question: option.question, run: tourFor(audience), animate: true }])
+  }
+
   const filteredCommands = useMemo(() => {
     const normalized = query.trim().toLowerCase().replace(/^\//, '').trim()
     if (!normalized) return commands.slice(0, 4)
@@ -218,7 +225,7 @@ export default function App() {
   const isDetailComposer = activeView !== 'home'
   const composerPlaceholder = activeProject
     ? `${activeProject.project.name}에 대해 agent에게 물어보세요`
-    : '임태욱에 대해 무엇이든 물어보세요'
+    : '비서에게 태욱 님에 대해 물어보세요'
   const isCommandMenuVisible = isCommandOpen && query.trimStart().startsWith('/')
 
   return (
@@ -248,7 +255,7 @@ export default function App() {
             <button type="button" aria-label="대화 메뉴"><MoreHorizontal /></button>
           </header>}
           <section className={`workspace-content ${activeProject ? 'is-project-thread' : ''} ${activeThread ? 'has-conversation' : ''}`} tabIndex={-1}>
-            {activeView === 'home' && <AgentChat messages={agentMessages} onAsk={askAgent} onNavigate={navigate} onSettled={settleAgentMessage} busy={agentBusy} />}
+            {activeView === 'home' && <AgentChat messages={agentMessages} onAsk={askAgent} onNavigate={navigate} onSettled={settleAgentMessage} onChooseAudience={chooseAudience} busy={agentBusy} />}
 
             {activeThread ? <WorkConversation key={activeView} thread={activeThread} replies={sessionReplies[activeView] ?? []} pending={pendingReply?.view === activeView ? pendingReply.reply : null} onAsk={askQuestion} onOpenReview={() => setIsReviewOpen(true)} /> : activeProject && <ProjectShowcase project={activeProject.project} index={activeProject.index} question={projectQuestion} onOpenReview={() => setIsReviewOpen(true)} />}
             {activeView === 'experience' && <Experience />}
@@ -273,7 +280,7 @@ export default function App() {
               </div>
             )}
             {!isDetailComposer && <div className="workspace-context" aria-label="현재 포트폴리오 정보">
-              <span><Bot aria-hidden="true" /> 임태욱 agent</span>
+              <span><Bot aria-hidden="true" /> 태욱 님의 비서</span>
               <span><ShieldCheck aria-hidden="true" /> 기록 기반 답변</span>
               <a href={profile.githubUrl} target="_blank" rel="noreferrer"><GitBranch aria-hidden="true" /> {profile.githubHandle}</a>
             </div>}

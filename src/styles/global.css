@@ -663,3 +663,58 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline: 2px solid 
   .agent-avatar.is-large { width: 48px; height: 48px; margin-bottom: 18px; }
 }
 @media (prefers-reduced-motion: reduce) { .agent-intro, .agent-steps ol > li { animation: none; } }
+
+/* ---- Assistant persona ---- */
+.agent-audience { width: min(640px, 100%); margin-top: 34px; }
+.agent-audience h2 { margin: 0 0 12px; color: var(--text); font-size: 0.92rem; font-weight: 620; }
+.agent-audience > div { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.agent-audience button { min-width: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 10px; padding: 14px; border: 1px solid var(--line); border-radius: 13px; background: var(--panel); color: var(--text); font: inherit; text-align: left; cursor: pointer; transition: border-color 140ms ease, background 140ms ease, transform 140ms ease; }
+.agent-audience button:hover:not(:disabled) { border-color: color-mix(in srgb, var(--accent) 55%, var(--line)); background: var(--surface); transform: translateY(-1px); }
+.agent-audience button:disabled { opacity: 0.5; cursor: default; }
+.agent-audience button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.agent-audience svg { width: 18px; height: 18px; color: var(--accent); }
+.agent-audience button > span { display: grid; gap: 3px; }
+.agent-audience strong { font-size: 0.82rem; font-weight: 620; }
+.agent-audience small { color: var(--muted); font-size: 0.7rem; }
+.agent-intro .agent-starters { margin-top: 14px; }
+.agent-intro .agent-starters button { padding-block: 9px; border-style: dashed; background: transparent; font-size: 0.76rem; color: var(--muted); }
+.agent-intro .agent-starters button:hover:not(:disabled) { color: var(--text); }
+
+.agent-list { display: grid; gap: 8px; margin: 0; padding-left: 20px; list-style: disc; }
+.agent-list li::marker { color: var(--accent); }
+.agent-point a { display: inline-flex; align-items: center; gap: 4px; color: var(--accent); font-size: 0.68rem; }
+.agent-point a:hover { text-decoration: underline; }
+.agent-point a svg { width: 11px; height: 11px; }
+
+.agent-handoff { display: grid; gap: 8px; padding: 16px; border: 1px solid color-mix(in srgb, var(--accent) 35%, var(--line)); border-radius: 13px; background: var(--panel); }
+.agent-handoff > strong { font-size: 0.84rem; font-weight: 640; }
+.agent-handoff label { color: var(--muted); font-size: 0.7rem; }
+.agent-handoff textarea, .agent-handoff input { width: 100%; padding: 9px 11px; border: 1px solid var(--line); border-radius: 9px; background: var(--canvas); color: var(--text); font: inherit; font-size: 0.8rem; line-height: 1.6; resize: vertical; }
+.agent-handoff textarea:focus, .agent-handoff input:focus { outline: none; border-color: var(--accent); }
+.agent-handoff-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.agent-handoff-row > span { display: grid; gap: 6px; }
+.agent-handoff footer { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 12px; margin-top: 4px; }
+.agent-handoff footer small { color: var(--faint); font-size: 0.68rem; }
+.agent-handoff button { display: inline-flex; align-items: center; gap: 7px; padding: 8px 14px; border: 0; border-radius: 9px; background: var(--accent-strong); color: #fff; font: inherit; font-size: 0.78rem; font-weight: 600; cursor: pointer; }
+.agent-handoff button:disabled { opacity: 0.5; cursor: default; }
+.agent-handoff button svg { width: 14px; height: 14px; }
+:root[data-theme='light'] .agent-audience button,
+:root[data-theme='light'] .agent-handoff { background: #fff; }
+:root[data-theme='light'] .agent-handoff textarea,
+:root[data-theme='light'] .agent-handoff input { background: #fafaf8; }
+
+@media (max-width: 720px) {
+  .agent-audience { margin-top: 26px; }
+  .agent-audience > div { grid-template-columns: 1fr; }
+  .agent-audience button { flex-direction: row; align-items: center; padding: 12px 14px; }
+  .agent-handoff-row { grid-template-columns: 1fr; }
+}
+
+/* Inline contact inside an assistant answer: two compact cards instead of the full Contact page rows */
+.agent-contact { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; border: 0; }
+.agent-contact a { min-height: 0; display: grid; grid-template-columns: 18px minmax(0, 1fr) 14px; align-items: center; gap: 10px; padding: 11px 13px; border: 1px solid var(--line); border-radius: 11px; background: var(--panel); font-size: 0.8rem; }
+.agent-contact a:hover { padding: 11px 13px; border-color: color-mix(in srgb, var(--accent) 50%, var(--line)); background: var(--surface); color: var(--text); }
+.agent-contact a > span { display: grid; gap: 2px; min-width: 0; overflow-wrap: anywhere; }
+.agent-contact svg { width: 15px; height: 15px; color: var(--muted); }
+:root[data-theme='light'] .agent-contact a { background: #fff; }
+@media (max-width: 720px) { .agent-contact { grid-template-columns: 1fr; } }
