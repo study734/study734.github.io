@@ -2,11 +2,10 @@ import { describe, expect, test } from 'vitest'
 import { projects } from './projects'
 
 describe('portfolio v2 project data', () => {
-  test('keeps the four projects in evidence-first order', () => {
+  test('keeps the projects in evidence-first order', () => {
     expect(projects.map((project) => project.name)).toEqual([
       'GearVia',
       'GearVia On-Premise',
-      'GearVia ME',
       'MOIDA',
     ])
   })

@@ -72,12 +72,3 @@ export function conversationFor(thread: ProjectThread): Conversation {
     limitation: '상세 검증 기록이 아직 연결되지 않았습니다. 소개된 역할을 넘어선 성과나 수치는 제시하지 않습니다.',
   }
 }
-
-export const followupQuestions = ['왜 이 방식을 선택했나요?', '실패와 한계는 무엇인가요?', '직접 맡은 부분은요?']
-export function answerFollowup(thread: ProjectThread, question: string) {
-  const record = conversationFor(thread)
-  if (/선택|이유|왜|방식/.test(question)) return record.decision
-  if (/실패|한계|문제|검증|테스트/.test(question)) return record.limitation
-  if (/직접|역할|기여|담당/.test(question)) return `정리된 담당 범위는 ${thread.contributions.join(', ')}입니다. 팀 전체 기능과 구분해 보려면 연결된 PR의 변경 내용도 함께 확인해주세요.`
-  return '이 질문에 해당하는 답변은 아직 작업 기록에 정리되어 있지 않습니다. 아래의 선택 이유·실패와 한계·담당 범위 질문으로 더 살펴볼 수 있습니다.'
-}

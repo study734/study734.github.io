@@ -1,10 +1,4 @@
-const stack = [
-  ['Backend', 'Java · Spring Boot · Spring Security · JPA / QueryDSL', '서비스의 핵심 흐름과 권한 구조를 설계합니다.'],
-  ['Frontend', 'React · TypeScript · Vite', '아이디어를 직접 확인 가능한 화면으로 연결합니다.'],
-  ['Data', 'MySQL', '업무 데이터의 관계와 접근 경계를 다룹니다.'],
-  ['AI', 'OpenAI API · RAG', 'AI 기능을 실제 제품 흐름에 맞게 통합합니다.'],
-  ['Infra', 'Docker · Nginx · GitHub Actions · AWS', '로컬 구현 이후의 실행 환경까지 고려합니다.'],
-]
+import { stack } from '../data/profile'
 
 export function Stack() {
   return (

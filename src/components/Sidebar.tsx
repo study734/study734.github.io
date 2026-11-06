@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { BookOpenText, BriefcaseBusiness, ChevronRight, CircleHelp, FileText, Folder, GitBranch, Home, Layers3, Mail, Moon, Settings, Sun, X } from 'lucide-react'
+import { BookOpenText, Bot, BriefcaseBusiness, ChevronRight, FileText, Folder, GitBranch, Layers3, Mail, Moon, Sun, X } from 'lucide-react'
 import { projects, projectThreads } from '../data/projects'
 import type { Theme } from '../App'
 import { mailtoUrl, profile } from '../data/profile'
@@ -55,7 +55,7 @@ export function Sidebar({ activeView, isOpen, onClose, onNavigate, theme, onTogg
 
         <nav className="sidebar-navigation" aria-label="Portfolio navigation">
           <button className={activeView === 'home' ? 'is-active' : ''} type="button" onClick={() => onNavigate('home')}>
-            <Home aria-hidden="true" /><span>Overview</span>
+            <Bot aria-hidden="true" /><span>Ask Agent</span>
           </button>
           <a href="https://github.com/study734" target="_blank" rel="noreferrer">
             <GitBranch aria-hidden="true" /><span>GitHub</span><ChevronRight className="nav-tail" aria-hidden="true" />
@@ -117,13 +117,11 @@ export function Sidebar({ activeView, isOpen, onClose, onNavigate, theme, onTogg
                 <span>{theme === 'dark' ? '화이트 테마' : '다크 테마'}</span>
                 <small>{theme === 'dark' ? 'Light' : 'Dark'}</small>
               </button>
-              <button role="menuitem" type="button" onClick={() => { onNavigate('contact'); setIsAccountOpen(false) }}><Settings /><span>설정 및 연락처</span></button>
             </div>
           )}
           <button className="account-trigger" type="button" aria-expanded={isAccountOpen} aria-haspopup="menu" onClick={() => setIsAccountOpen((open) => !open)}>
             <span className="account-avatar">임</span>
             <span><strong>임태욱</strong><small>Available to build</small></span>
-            <CircleHelp aria-hidden="true" />
           </button>
         </div>
       </aside>

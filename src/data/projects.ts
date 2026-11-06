@@ -230,18 +230,6 @@ export const projects: Project[] = [
     ],
   },
   {
-    name: 'GearVia ME',
-    subtitle: '개인 일정과 업무 관리를 간결하게 구성한 웹 서비스',
-    role: ['Backend', 'Auth'],
-    contributions: [
-      '프로젝트 기능 구현 및 통합 참여',
-      '인증·사용자 기능 개발 참여',
-      '서비스 동작 검증과 개선',
-    ],
-    technologies: ['Java', 'Spring Boot', 'React', 'TypeScript', 'MySQL', 'PWA'],
-    repositoryUrl: 'https://github.com/HO-0219/todoProject',
-  },
-  {
     name: 'MOIDA',
     subtitle: '중고 물품 등록과 경매 흐름을 구현한 팀 프로젝트',
     role: ['Backend', 'Auth', 'AWS'],
@@ -282,18 +270,6 @@ export const projectThreads: ProjectThread[][] = [
       title: '내부 데이터와 AI 연동 설계',
       answer: '내부 데이터 경계와 AI 설정을 분리해 검토하고, 운영 환경에서 필요한 연동 구조를 설계했습니다.',
       contributions: ['AI 설정과 내부 데이터 연동 구조 설계', '관리자·운영 관점의 사용자 및 업무 관리 구조 검토'],
-    },
-  ],
-  [
-    {
-      title: '개인 업무 관리 흐름을 어떻게 단순화했나요?',
-      answer: '개인 일정과 업무를 빠르게 확인하고 처리할 수 있도록 핵심 흐름을 간결한 웹 서비스 경험으로 구성했습니다.',
-      contributions: ['프로젝트 기능 구현 및 통합 참여', '서비스 동작 검증과 개선'],
-    },
-    {
-      title: '인증과 사용자 기능 구현',
-      answer: '사용자 진입 흐름을 안정적으로 연결하기 위해 인증과 사용자 기능 구현에 참여했습니다.',
-      contributions: ['인증·사용자 기능 개발 참여', '서비스 동작 검증과 개선'],
     },
   ],
   [
