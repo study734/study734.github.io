@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { BookOpenText, BriefcaseBusiness, ChevronRight, CircleHelp, FileText, Folder, GitBranch, Home, Layers3, Mail, Moon, Settings, Sun, X } from 'lucide-react'
 import { projects, projectThreads } from '../data/projects'
 import type { Theme } from '../App'
+import { mailtoUrl, profile } from '../data/profile'
 
 export type WorkspaceView = 'home' | 'experience' | 'stack' | 'contact' | `project-${number}` | `project-${number}-thread-${number}`
 
@@ -46,8 +47,8 @@ export function Sidebar({ activeView, isOpen, onClose, onNavigate, theme, onTogg
       <aside className={`workspace-sidebar ${isOpen ? 'is-open' : ''}`} aria-label="Portfolio workspace">
         <div className="sidebar-heading">
           <button className="identity" type="button" onClick={() => onNavigate('home')}>
-            <span className="identity-brand">Portfolio</span>
-            <span><strong>Workspace</strong><small>Software Engineer</small></span>
+            <span className="identity-mark" aria-hidden="true">TW</span>
+            <span><strong>{profile.name}</strong><small>Backend · AI Web Developer</small></span>
           </button>
           <button className="sidebar-close" type="button" aria-label="메뉴 닫기" onClick={onClose}><X /></button>
         </div>
@@ -109,7 +110,7 @@ export function Sidebar({ activeView, isOpen, onClose, onNavigate, theme, onTogg
               </div>
               <a role="menuitem" href="https://github.com/study734" target="_blank" rel="noreferrer"><GitBranch /><span>GitHub 프로필</span><ChevronRight /></a>
               <button role="menuitem" type="button" onClick={() => { onNavigate('home'); setIsAccountOpen(false) }}><BookOpenText /><span>프로젝트 둘러보기</span></button>
-              <a role="menuitem" href="mailto:study734@naver.com"><Mail /><span>연락하기</span></a>
+              <a role="menuitem" href={mailtoUrl}><Mail /><span>연락하기</span></a>
               <div className="account-menu-separator" />
               <button role="menuitem" type="button" onClick={onToggleTheme}>
                 {theme === 'dark' ? <Sun /> : <Moon />}

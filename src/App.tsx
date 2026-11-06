@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState, type FormEvent } from 'react'
-import { ArrowUp, BriefcaseBusiness, Code2, Folder, GitBranch, MoreHorizontal, Plus, Sparkles } from 'lucide-react'
+import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
+import { ArrowUp, ArrowUpRight, BriefcaseBusiness, Code2, Folder, GitBranch, Layers3, MoreHorizontal, Plus, Sparkles, UsersRound } from 'lucide-react'
 import { Header } from './components/Header'
 import { ProjectShowcase } from './components/ProjectShowcase'
 import { ReviewPane } from './components/ReviewPane'
@@ -10,13 +10,26 @@ import { Experience } from './sections/Experience'
 import { Stack } from './sections/Stack'
 import { WorkConversation } from './components/WorkConversation'
 import { answerFollowup, followupQuestions, type Exchange } from './data/conversations'
+import { profile } from './data/profile'
 
 const quickActions = [
   { label: '대표 프로젝트 보기', view: 'project-0' as WorkspaceView, icon: BriefcaseBusiness },
-  { label: 'AI · RAG 경험 보기', view: 'project-0' as WorkspaceView, icon: Sparkles },
-  { label: '협업과 역할 보기', view: 'experience' as WorkspaceView, icon: Code2 },
-  { label: '기술 스택 확인하기', view: 'stack' as WorkspaceView, icon: Code2 },
+  { label: 'AI · RAG 경험 보기', view: 'project-0-thread-1' as WorkspaceView, icon: Sparkles },
+  { label: '협업과 역할 보기', view: 'experience' as WorkspaceView, icon: UsersRound },
+  { label: '기술 스택 확인하기', view: 'stack' as WorkspaceView, icon: Layers3 },
 ]
+
+/** URL 해시(#/project-0 등)와 화면을 맞춰서, 특정 프로젝트 링크를 그대로 공유할 수 있게 합니다. */
+const viewFromHash = (hash: string): WorkspaceView => {
+  const value = decodeURIComponent(hash.replace(/^#\/?/, ''))
+  if (value === 'experience' || value === 'stack' || value === 'contact') return value
+  const thread = value.match(/^project-(\d+)-thread-(\d+)$/)
+  if (thread && projectThreads[Number(thread[1])]?.[Number(thread[2])]) return value as WorkspaceView
+  const project = value.match(/^project-(\d+)$/)
+  if (project && projects[Number(project[1])]) return value as WorkspaceView
+  return 'home'
+}
+const hashFromView = (view: WorkspaceView) => (view === 'home' ? '#/' : `#/${view}`)
 
 export type Theme = 'dark' | 'light'
 type CommandTarget = WorkspaceView | 'review'
@@ -36,7 +49,7 @@ const commands = [
 ]
 
 export default function App() {
-  const [activeView, setActiveView] = useState<WorkspaceView>('home')
+  const [activeView, setActiveView] = useState<WorkspaceView>(() => viewFromHash(window.location.hash))
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
   const [query, setQuery] = useState('')
@@ -98,7 +111,7 @@ export default function App() {
     else setIsSidebarCollapsed((collapsed) => !collapsed)
   }
 
-  const navigate = (view: WorkspaceView, question = '') => {
+  const applyView = (view: WorkspaceView, question = '') => {
     setPendingReply(null)
     setActiveView(view)
     setQuery('')
@@ -115,9 +128,43 @@ export default function App() {
     setIsCommandOpen(false)
     window.requestAnimationFrame(() => {
       const content = document.querySelector<HTMLElement>('.workspace-content')
-      if (content) { content.scrollTop = 0; content.focus() }
+      if (content) { content.scrollTop = 0; content.focus({ preventScroll: true }) }
     })
   }
+
+  const navigate = (view: WorkspaceView, question = '') => {
+    applyView(view, question)
+    if (window.location.hash !== hashFromView(view)) window.history.pushState(null, '', hashFromView(view))
+  }
+
+  const applyViewRef = useRef(applyView)
+  applyViewRef.current = applyView
+
+  useEffect(() => {
+    const syncFromUrl = () => applyViewRef.current(viewFromHash(window.location.hash))
+    window.addEventListener('popstate', syncFromUrl)
+    return () => window.removeEventListener('popstate', syncFromUrl)
+  }, [])
+
+  useEffect(() => {
+    const focusComposer = (event: KeyboardEvent) => {
+      const target = event.target as HTMLElement | null
+      const isTyping = target?.closest('input, textarea, [contenteditable="true"]')
+      if (event.key === '/' && !isTyping && !event.metaKey && !event.ctrlKey && !event.altKey) {
+        event.preventDefault()
+        document.getElementById('portfolio-query')?.focus()
+      }
+    }
+    document.addEventListener('keydown', focusComposer)
+    return () => document.removeEventListener('keydown', focusComposer)
+  }, [])
+
+  useEffect(() => {
+    const projectIndex = projectIndexFromView(activeView)
+    const section = activeView === 'experience' ? 'Experience' : activeView === 'stack' ? 'Core Stack' : activeView === 'contact' ? 'Contact' : null
+    const label = projectIndex !== null ? projects[projectIndex]?.name : section
+    document.title = label ? `${label} · ${profile.name} 포트폴리오` : `${profile.name} | ${profile.role}`
+  }, [activeView])
 
   const filteredCommands = useMemo(() => {
     const normalized = query.trim().toLowerCase()
@@ -187,6 +234,7 @@ export default function App() {
         onToggleTheme={() => setTheme((current) => current === 'dark' ? 'light' : 'dark')}
         isReviewOpen={isReviewOpen}
         onToggleReview={() => setIsReviewOpen((open) => !open)}
+        onOpenContact={() => navigate('contact')}
       />
       <div className={`workspace-layout ${isSidebarCollapsed ? 'sidebar-collapsed' : ''} ${isReviewOpen ? 'has-review' : ''}`}>
         <Sidebar
@@ -210,8 +258,13 @@ export default function App() {
                 <p className="eyebrow">SOFTWARE ENGINEER · PORTFOLIO 2026</p>
                 <h1>임태욱은 무엇을<br />만들어왔을까요?</h1>
                 <p className="home-description">
-                  문제를 구조화하고 동작하는 제품으로 연결합니다.<br />
+                  문제를 구조화하고 동작하는 제품으로 연결합니다.<br />{' '}
                   Backend, Security, AI · RAG를 넘나든 프로젝트 기록입니다.
+                </p>
+                <p className="home-profile">
+                  <span className="home-profile-dot" aria-hidden="true" />
+                  <strong>{profile.name}</strong>
+                  <span>{profile.summary}</span>
                 </p>
 
                 <div className="quick-actions" aria-label="추천 탐색 경로">
@@ -222,6 +275,27 @@ export default function App() {
                     </button>
                   ))}
                 </div>
+
+                <section className="home-projects" aria-labelledby="home-projects-title">
+                  <header>
+                    <h2 id="home-projects-title">Selected Projects</h2>
+                    <span>{projects.length}개 프로젝트 · 클릭해서 자세히 보기</span>
+                  </header>
+                  <div className="home-project-grid">
+                    {projects.map((project, index) => (
+                      <button type="button" key={project.name} className={project.featured ? 'is-featured' : ''} onClick={() => navigate(`project-${index}` as WorkspaceView)}>
+                        <span className="home-project-meta">
+                          <span>{String(index + 1).padStart(2, '0')}</span>
+                          {project.featured && <span className="home-project-badge">대표</span>}
+                          {project.context?.team && <span>{project.context.team}</span>}
+                        </span>
+                        <strong>{project.name}<ArrowUpRight aria-hidden="true" /></strong>
+                        <span className="home-project-subtitle">{project.subtitle}</span>
+                        <span className="home-project-tech">{project.technologies.slice(0, 4).map((tech) => <span key={tech}>{tech}</span>)}</span>
+                      </button>
+                    ))}
+                  </div>
+                </section>
               </div>
             )}
 
@@ -250,7 +324,7 @@ export default function App() {
             {!isDetailComposer && <div className="workspace-context" aria-label="현재 포트폴리오 정보">
               <span><BriefcaseBusiness aria-hidden="true" /> Portfolio</span>
               <span><Code2 aria-hidden="true" /> Product-minded</span>
-              <a href="https://github.com/study734" target="_blank" rel="noreferrer"><GitBranch aria-hidden="true" /> study734</a>
+              <a href={profile.githubUrl} target="_blank" rel="noreferrer"><GitBranch aria-hidden="true" /> {profile.githubHandle}</a>
             </div>}
             <form className="command-composer" onSubmit={submitQuery}>
               <label className="sr-only" htmlFor="portfolio-query">포트폴리오 탐색</label>

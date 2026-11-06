@@ -18,9 +18,19 @@ npm run build
 
 ## Deployment
 
-Pushes to `main` are tested, built with Vite, and deployed to GitHub Pages through GitHub Actions.
+Pushes to `main` are tested, built with Vite, and deployed to GitHub Pages by `.github/workflows/deploy.yml`.
+
+One-time setup: in the repository **Settings → Pages**, set **Source** to **GitHub Actions**.
 
 Live URL: https://study734.github.io
+
+Each view has its own shareable link, e.g. `https://study734.github.io/#/project-0` (GearVia), `#/stack`, `#/contact`.
+
+## Editing content
+
+- Name, role, GitHub and email: `src/data/profile.ts`
+- Projects and case studies: `src/data/projects.ts`
+- Conversation records: `src/data/conversations.ts`
 
 ## Structure
 

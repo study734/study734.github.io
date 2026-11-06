@@ -7,7 +7,8 @@ export interface ProjectImage {
 
 /** 프로젝트 상단에 한 줄로 노출되는 메타 정보 */
 export interface ProjectContext {
-  period: string
+  /** 비워두면 화면에 표시하지 않습니다 */
+  period?: string
   team: string
   position: string
 }
@@ -245,8 +246,7 @@ export const projects: Project[] = [
     subtitle: '중고 물품 등록과 경매 흐름을 구현한 팀 프로젝트',
     role: ['Backend', 'Auth', 'AWS'],
     context: {
-      // TODO(확인): 실제 기간과 인원으로 교체
-      period: '기간 확인 필요',
+      // TODO(확인): 실제 기간을 period로 추가
       team: '팀 프로젝트',
       position: '인증 / 배포 담당',
     },

@@ -3,7 +3,7 @@ import '@testing-library/jest-dom/vitest'
 import { afterEach, describe, expect, test, vi } from 'vitest'
 import App from './App'
 
-afterEach(() => { cleanup(); vi.useRealTimers(); vi.unstubAllGlobals() })
+afterEach(() => { cleanup(); vi.useRealTimers(); vi.unstubAllGlobals(); window.history.replaceState(null, '', '/') })
 
 const finishAnswer = () => act(() => { vi.advanceTimersByTime(1000) })
 
@@ -170,5 +170,36 @@ describe('workspace portfolio app', () => {
     fireEvent.click(screen.getByRole('button', { name: '왼쪽 패널 전환' }))
     expect(document.querySelector('.workspace-layout')).toHaveClass('sidebar-collapsed')
     expect(screen.getByRole('button', { name: '왼쪽 패널 전환' })).toHaveAttribute('title', '왼쪽 패널 열기')
+  })
+
+  test('lists every project on the overview and opens one from its card', () => {
+    render(<App />)
+    const list = screen.getByRole('region', { name: 'Selected Projects' })
+    fireEvent.click(within(list).getByRole('button', { name: /GearVia On-Premise/ }))
+    expect(screen.getByText(/GearVia On-Premise에서 어떤 문제를/)).toBeInTheDocument()
+    expect(window.location.hash).toBe('#/project-1')
+  })
+
+  test('opens the view named in the URL so sections can be shared as links', () => {
+    window.history.replaceState(null, '', '/#/stack')
+    render(<App />)
+    expect(screen.getByRole('heading', { level: 1, name: 'Core Stack' })).toBeInTheDocument()
+  })
+
+  test('follows browser back navigation between views', () => {
+    render(<App />)
+    fireEvent.click(screen.getByRole('button', { name: 'Experience' }))
+    expect(window.location.hash).toBe('#/experience')
+    act(() => {
+      window.history.replaceState(null, '', '/#/')
+      window.dispatchEvent(new PopStateEvent('popstate'))
+    })
+    expect(screen.getByRole('heading', { level: 1, name: /임태욱은 무엇을/ })).toBeInTheDocument()
+  })
+
+  test('opens the contact view from the top bar', () => {
+    render(<App />)
+    fireEvent.click(screen.getByRole('button', { name: '연락처' }))
+    expect(screen.getByRole('link', { name: /EMAIL/ })).toHaveAttribute('href', expect.stringMatching(/^mailto:/))
   })
 })
