@@ -1,6 +1,8 @@
 import { useId, useState, type FormEvent } from 'react'
 import { Send } from 'lucide-react'
 import { profile } from '../data/profile'
+import { trackEvent } from '../lib/analytics'
+import { CopyEmailButton } from './CopyEmailButton'
 
 /**
  * 비서가 답하지 못한 질문이나 남기고 싶은 말을 태욱 님께 전달합니다.
@@ -29,6 +31,7 @@ export function AgentHandoff({ question, transcript }: { question: string; trans
     const subject = `[포트폴리오 문의] ${message.trim().slice(0, 40)}`
     window.location.href = `mailto:${profile.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
     setOpened(true)
+    trackEvent('handoff', { withReply: !!replyTo.trim() })
   }
 
   return (
@@ -47,8 +50,11 @@ export function AgentHandoff({ question, transcript }: { question: string; trans
         </span>
       </div>
       <footer>
-        <small>{opened ? '메일 앱을 열었어요. 내용을 확인하고 보내 주세요.' : `보내기를 누르면 ${profile.email} 앞으로 정리된 메일 창이 열려요.`}</small>
-        <button type="submit" disabled={!message.trim()}><Send aria-hidden="true" />메일로 보내기</button>
+        <small>{opened ? '메일 앱을 열었어요. 열리지 않았다면 주소를 복사해서 보내 주세요.' : `보내기를 누르면 ${profile.email} 앞으로 정리된 메일 창이 열려요.`}</small>
+        <span className="agent-handoff-actions">
+          <CopyEmailButton />
+          <button type="submit" disabled={!message.trim()}><Send aria-hidden="true" />메일로 보내기</button>
+        </span>
       </footer>
     </form>
   )

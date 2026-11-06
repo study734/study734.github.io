@@ -1,4 +1,5 @@
 import { describe, expect, test } from 'vitest'
+import { projects } from '../data/projects'
 import { audienceOptions, runAgent, search, starterQuestions, tourFor } from './engine'
 
 const pointTitles = (question: string) => runAgent(question).blocks.flatMap((block) => (block.type === 'point' ? [block.title] : []))
@@ -39,7 +40,7 @@ describe('portfolio assistant', () => {
     expect(pointTitles('벡터 DB 없이 시작한 이유는?')[0]).toMatch(/벡터 DB 없이/)
     const { results } = search('MOIDA에서 인증은 어떻게 구현했나요?')
     expect(results.length).toBeGreaterThan(0)
-    expect(results.every((chunk) => chunk.projectIndex === 3)).toBe(true)
+    expect(results.every((chunk) => chunk.projectIndex === projects.findIndex((project) => project.name === 'MOIDA'))).toBe(true)
     const searchStep = runAgent('그룹 격리를 왜 SQL로 했나요?').steps.find((step) => step.label === '기록 검색')
     expect(searchStep?.detail).toMatch(/기록 \d+개 중 \d건 일치/)
   })

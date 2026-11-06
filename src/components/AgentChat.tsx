@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { ArrowUpRight, BriefcaseBusiness, Check, ChevronDown, Code2, Compass, CornerDownRight, ExternalLink, GitBranch, Mail, Search } from 'lucide-react'
 import { audienceOptions, starterQuestions, type AgentRun, type Audience } from '../agent/engine'
 import { AgentHandoff } from './AgentHandoff'
+import { CopyEmailButton } from './CopyEmailButton'
 import { mailtoUrl, profile } from '../data/profile'
 import { projects } from '../data/projects'
 import type { WorkspaceView } from './Sidebar'
@@ -169,9 +170,12 @@ function AgentReply({ message, transcript, isLatest, busy, onAsk, onNavigate, on
             </div>
           )
           return (
-            <div key={index} className="contact-actions agent-contact revealed-answer">
-              <a href={mailtoUrl}><Mail aria-hidden="true" /><span><small>EMAIL</small>{profile.email}</span><ArrowUpRight aria-hidden="true" /></a>
+            <div key={index} className="agent-contact-block revealed-answer">
+              <div className="contact-actions agent-contact">
+                <a href={mailtoUrl}><Mail aria-hidden="true" /><span><small>EMAIL</small>{profile.email}</span><ArrowUpRight aria-hidden="true" /></a>
               <a href={profile.githubUrl} target="_blank" rel="noreferrer"><GitBranch aria-hidden="true" /><span><small>GITHUB</small>github.com/{profile.githubHandle}</span><ArrowUpRight aria-hidden="true" /></a>
+            </div>
+            <CopyEmailButton className="agent-copy-email" />
             </div>
           )
         })}

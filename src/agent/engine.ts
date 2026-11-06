@@ -301,14 +301,13 @@ const sourceOf = (chunk: KnowledgeChunk): AgentSource => ({ label: chunk.source,
 const uniqueSources = (sources: AgentSource[]) => sources.filter((source, index) => sources.findIndex((other) => other.label === source.label) === index)
 
 function followupsFor(focus: number[], asked: string): string[] {
-  const byProject: Record<number, string[]> = {
-    0: ['그룹 격리를 왜 SQL로 했나요?', 'AI 주간 보고서는 어떻게 검증했나요?', '벡터 DB 없이 시작한 이유는?'],
-    1: ['On-Premise 설치 중 생긴 문제는?', 'AI 설정을 관리자 화면으로 옮긴 이유는?', 'IP 허용목록은 어떻게 고쳤나요?'],
-    2: ['GearVia ME에서 맡은 역할은?', 'GearVia On-Premise는 어떤 프로젝트인가요?'],
-    3: ['MOIDA에서 인증은 어떻게 구현했나요?', 'AWS 배포는 어떻게 구성했나요?'],
+  const byProject: Record<string, string[]> = {
+    GearVia: ['그룹 격리를 왜 SQL로 했나요?', 'AI 주간 보고서는 어떻게 검증했나요?', '벡터 DB 없이 시작한 이유는?'],
+    'GearVia On-Premise': ['On-Premise 설치 중 생긴 문제는?', 'AI 설정을 관리자 화면으로 옮긴 이유는?', 'IP 허용목록은 어떻게 고쳤나요?'],
+    MOIDA: ['MOIDA에서 인증은 어떻게 구현했나요?', 'AWS 배포는 어떻게 구성했나요?'],
   }
   const fallback = ['강점이 뭔가요?', '가장 어려웠던 문제는?', '연락은 어떻게 하나요?']
-  return [...focus.flatMap((index) => byProject[index] ?? []), ...fallback].filter((question, index, list) => question !== asked && list.indexOf(question) === index).slice(0, 3)
+  return [...focus.flatMap((index) => byProject[projects[index].name] ?? []), ...fallback].filter((question, index, list) => question !== asked && list.indexOf(question) === index).slice(0, 3)
 }
 
 function understandStep(intent: Intent, focus: number[], keywords: string[]): AgentStep {
@@ -319,10 +318,14 @@ function understandStep(intent: Intent, focus: number[], keywords: string[]): Ag
   return { label: '질문 이해', detail: parts.join(' · ') }
 }
 
-export function runAgent(rawQuestion: string): AgentRun {
+/**
+ * @param contextProject 프로젝트 화면에서 물어본 경우 그 프로젝트 이름. 질문에 프로젝트가 없으면 이 프로젝트 기록을 우선 찾습니다.
+ */
+export function runAgent(rawQuestion: string, contextProject?: string): AgentRun {
   const question = rawQuestion.trim().slice(0, 300)
   const intent = detectIntent(question)
-  const { results, keywords, focus, total } = search(question)
+  const scoped = contextProject && mentionedProjects(question).length === 0 ? `${contextProject} ${question}` : question
+  const { results, keywords, focus, total } = search(scoped)
   const steps: AgentStep[] = [understandStep(intent, focus, keywords)]
 
   const curated = curatedAnswer(intent)

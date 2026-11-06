@@ -33,6 +33,11 @@ The home screen is an assistant that introduces me to visitors, speaking about m
 - **Record search for everything else:** `src/agent/search.ts` searches the records built in `src/agent/knowledge.ts`. The steps shown in the UI are the real search results.
 - **Hand-off instead of guessing:** when no record matches, the assistant says so and offers a form that opens a prepared email to me (`src/components/AgentHandoff.tsx`).
 - Type `/` in the composer to jump to a screen.
+- Project and work-record pages are plain case studies; questions asked there go to the assistant with that project in focus.
+
+## Analytics
+
+`@vercel/analytics` records page views, plus these custom events: `audience` (visitor type), `ask` (intent, answered), `unanswered` (the question text, first 120 chars), `handoff`, `copy-email`. Turn it on once in the Vercel dashboard: project → **Analytics** → **Enable**. The `unanswered` list shows which questions the assistant should learn next.
 
 Editing answers: change the text in `curatedAnswer`/`tourFor`; keep every claim traceable to `src/data/projects.ts` or `src/data/conversations.ts`.
 

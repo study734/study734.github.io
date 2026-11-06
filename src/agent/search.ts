@@ -62,8 +62,10 @@ export function mentionedProjects(question: string): number[] {
   for (const { index, key } of ordered) {
     if (rest.includes(key)) { found.push(index); rest = rest.split(key).join(' ') }
   }
-  if (/온프레미스|온프렘|b2b/.test(lower) && !found.includes(1)) found.push(1)
-  if (/경매|중고/.test(lower) && !found.includes(3)) found.push(3)
+  const onPremise = projects.findIndex((project) => project.name === 'GearVia On-Premise')
+  if (onPremise >= 0 && /온프레미스|온프렘|b2b/.test(lower) && !found.includes(onPremise)) found.push(onPremise)
+  const moida = projects.findIndex((project) => project.name === 'MOIDA')
+  if (moida >= 0 && /경매|중고/.test(lower) && !found.includes(moida)) found.push(moida)
   return found
 }
 

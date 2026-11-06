@@ -1,5 +1,6 @@
 import { ArrowUpRight, GitBranch, Mail } from 'lucide-react'
 import { mailtoUrl, profile } from '../data/profile'
+import { CopyEmailButton } from '../components/CopyEmailButton'
 
 export function Contact() {
   return (
@@ -9,6 +10,7 @@ export function Contact() {
         <a href={profile.githubUrl} target="_blank" rel="noreferrer"><GitBranch aria-hidden="true" /><span><small>CODE & PROJECTS</small>github.com/{profile.githubHandle}</span><ArrowUpRight aria-hidden="true" /></a>
         <a href={mailtoUrl}><Mail aria-hidden="true" /><span><small>EMAIL</small>{profile.email}</span><ArrowUpRight aria-hidden="true" /></a>
       </div>
+      <CopyEmailButton className="contact-copy" />
     </section>
   )
 }
