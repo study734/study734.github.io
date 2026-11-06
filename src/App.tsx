@@ -1,5 +1,7 @@
-import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
-import { ArrowUp, ArrowUpRight, BriefcaseBusiness, Code2, Folder, GitBranch, Layers3, MoreHorizontal, Plus, Sparkles, UsersRound } from 'lucide-react'
+import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
+import { ArrowUp, Bot, Folder, GitBranch, MoreHorizontal, Plus, ShieldCheck, Sparkles } from 'lucide-react'
+import { AgentChat, type AgentMessage } from './components/AgentChat'
+import { runAgent } from './agent/engine'
 import { Header } from './components/Header'
 import { ProjectShowcase } from './components/ProjectShowcase'
 import { ReviewPane } from './components/ReviewPane'
@@ -11,13 +13,6 @@ import { Stack } from './sections/Stack'
 import { WorkConversation } from './components/WorkConversation'
 import { answerFollowup, followupQuestions, type Exchange } from './data/conversations'
 import { profile } from './data/profile'
-
-const quickActions = [
-  { label: '대표 프로젝트 보기', view: 'project-0' as WorkspaceView, icon: BriefcaseBusiness },
-  { label: 'AI · RAG 경험 보기', view: 'project-0-thread-1' as WorkspaceView, icon: Sparkles },
-  { label: '협업과 역할 보기', view: 'experience' as WorkspaceView, icon: UsersRound },
-  { label: '기술 스택 확인하기', view: 'stack' as WorkspaceView, icon: Layers3 },
-]
 
 /** URL 해시(#/project-0 등)와 화면을 맞춰서, 특정 프로젝트 링크를 그대로 공유할 수 있게 합니다. */
 const viewFromHash = (hash: string): WorkspaceView => {
@@ -39,6 +34,8 @@ const projectIndexFromView = (view: WorkspaceView) => {
   return match ? Number(match[1]) : null
 }
 
+const homeHelper = '포트폴리오 기록을 검색해 답합니다 · / 로 화면 이동'
+
 const commands = [
   { label: '/review 프로젝트 검토', hint: '기여·기술·링크를 리뷰 패널에서 봅니다', target: 'review' as CommandTarget, keywords: '/review 리뷰 review diff 증거' },
   { label: '대표 프로젝트 보기', hint: 'GearVia 프로젝트를 엽니다', target: 'project-0' as CommandTarget, keywords: '대표 프로젝트 gearvia ai rag' },
@@ -56,7 +53,12 @@ export default function App() {
   const [projectQuestion, setProjectQuestion] = useState('')
   const [sessionReplies, setSessionReplies] = useState<Record<string, Exchange[]>>({})
   const [pendingReply, setPendingReply] = useState<{ view: string; reply: Exchange } | null>(null)
-  const [helperText, setHelperText] = useState('프로젝트와 경험을 탐색해보세요')
+  const [helperText, setHelperText] = useState(homeHelper)
+  const [agentMessages, setAgentMessages] = useState<AgentMessage[]>([])
+  const agentBusy = agentMessages.some((message) => message.animate)
+  const settleAgentMessage = useCallback((id: number) => {
+    setAgentMessages((current) => current.map((message) => message.id === id && message.animate ? { ...message, animate: false } : message))
+  }, [])
   const [isCommandOpen, setIsCommandOpen] = useState(false)
   const [isReviewOpen, setIsReviewOpen] = useState(false)
   const [theme, setTheme] = useState<Theme>(() => {
@@ -122,7 +124,7 @@ export default function App() {
     } else if (view !== 'home') {
       setHelperText('선택한 정보를 더 탐색해보세요')
     } else {
-      setHelperText('프로젝트와 경험을 탐색해보세요')
+      setHelperText(homeHelper)
     }
     setIsSidebarOpen(false)
     setIsCommandOpen(false)
@@ -166,8 +168,17 @@ export default function App() {
     document.title = label ? `${label} · ${profile.name} 포트폴리오` : `${profile.name} | ${profile.role}`
   }, [activeView])
 
+  const askAgent = (question: string) => {
+    const trimmed = question.trim()
+    if (!trimmed || agentBusy) return
+    if (activeView !== 'home') navigate('home')
+    setAgentMessages((current) => [...current, { id: Date.now() + current.length, question: trimmed, run: runAgent(trimmed), animate: true }])
+    setQuery('')
+    setIsCommandOpen(false)
+  }
+
   const filteredCommands = useMemo(() => {
-    const normalized = query.trim().toLowerCase()
+    const normalized = query.trim().toLowerCase().replace(/^\//, '').trim()
     if (!normalized) return commands.slice(0, 4)
     return commands.filter(({ label, keywords }) => `${label} ${keywords}`.toLowerCase().includes(normalized)).slice(0, 4)
   }, [query])
@@ -190,40 +201,25 @@ export default function App() {
     if (!normalized) return
 
     const submittedQuestion = query.trim()
-    if (activeThread && !normalized.startsWith('/')) {
+    if (normalized.startsWith('/')) {
+      const commandQuery = normalized.replace(/^\//, '').trim()
+      const matched = commands.find(({ label, keywords }) => `${label} ${keywords}`.toLowerCase().includes(commandQuery))
+      if (matched) runCommand(matched.target, matched.label)
+      else { setHelperText('일치하는 화면이 없습니다. / 없이 입력하면 agent에게 물어볼 수 있어요'); setQuery('') }
+      return
+    }
+    if (activeThread) {
       addFollowup(submittedQuestion)
       return
     }
-    const matched = commands.find(({ label, keywords }) => `${label} ${keywords}`.toLowerCase().includes(normalized))
-    if (matched) runCommand(matched.target, matched.label)
-    else if (normalized.includes('기술') || normalized.includes('stack')) navigate('stack')
-    else if (normalized.includes('경험') || normalized.includes('협업') || normalized.includes('역할')) navigate('experience')
-    else if (normalized.includes('연락') || normalized.includes('contact')) navigate('contact')
-    else if (normalized.includes('온프레미스') || normalized.includes('on-premise')) navigate('project-1')
-    else if (normalized.includes('me') || normalized.includes('개인')) navigate('project-2')
-    else if (normalized.includes('moida') || normalized.includes('경매')) navigate('project-3')
-    else navigate('project-0')
-
-    if (!matched) {
-      const targetView = normalized.includes('온프레미스') || normalized.includes('on-premise')
-        ? 'project-1'
-        : normalized.includes('me') || normalized.includes('개인')
-          ? 'project-2'
-          : normalized.includes('moida') || normalized.includes('경매')
-            ? 'project-3'
-            : 'project-0'
-      if (!['stack', 'experience', 'contact'].includes(activeView) || targetView.startsWith('project-')) setProjectQuestion(submittedQuestion)
-      setHelperText(`“${submittedQuestion}”에 가장 가까운 답변을 만들었습니다`)
-    }
-    setQuery('')
+    askAgent(submittedQuestion)
   }
 
   const isDetailComposer = activeView !== 'home'
   const composerPlaceholder = activeProject
-    ? `${activeProject.project.name}에 대해 더 질문해보세요`
-    : isDetailComposer
-      ? '선택한 항목에 대해 더 질문해보세요'
-      : '프로젝트나 경험을 입력해보세요'
+    ? `${activeProject.project.name}에 대해 agent에게 물어보세요`
+    : '임태욱에 대해 무엇이든 물어보세요'
+  const isCommandMenuVisible = isCommandOpen && query.trimStart().startsWith('/')
 
   return (
     <div className="portfolio-app">
@@ -252,52 +248,7 @@ export default function App() {
             <button type="button" aria-label="대화 메뉴"><MoreHorizontal /></button>
           </header>}
           <section className={`workspace-content ${activeProject ? 'is-project-thread' : ''} ${activeThread ? 'has-conversation' : ''}`} tabIndex={-1}>
-            {activeView === 'home' && (
-              <div className="home-view">
-                <div className="home-mark" aria-hidden="true"><Sparkles /></div>
-                <p className="eyebrow">SOFTWARE ENGINEER · PORTFOLIO 2026</p>
-                <h1>임태욱은 무엇을<br />만들어왔을까요?</h1>
-                <p className="home-description">
-                  문제를 구조화하고 동작하는 제품으로 연결합니다.<br />{' '}
-                  Backend, Security, AI · RAG를 넘나든 프로젝트 기록입니다.
-                </p>
-                <p className="home-profile">
-                  <span className="home-profile-dot" aria-hidden="true" />
-                  <strong>{profile.name}</strong>
-                  <span>{profile.summary}</span>
-                </p>
-
-                <div className="quick-actions" aria-label="추천 탐색 경로">
-                  {quickActions.map(({ label, view, icon: Icon }) => (
-                    <button type="button" key={label} onClick={() => navigate(view)}>
-                      <Icon aria-hidden="true" />
-                      <span>{label}</span>
-                    </button>
-                  ))}
-                </div>
-
-                <section className="home-projects" aria-labelledby="home-projects-title">
-                  <header>
-                    <h2 id="home-projects-title">Selected Projects</h2>
-                    <span>{projects.length}개 프로젝트 · 클릭해서 자세히 보기</span>
-                  </header>
-                  <div className="home-project-grid">
-                    {projects.map((project, index) => (
-                      <button type="button" key={project.name} className={project.featured ? 'is-featured' : ''} onClick={() => navigate(`project-${index}` as WorkspaceView)}>
-                        <span className="home-project-meta">
-                          <span>{String(index + 1).padStart(2, '0')}</span>
-                          {project.featured && <span className="home-project-badge">대표</span>}
-                          {project.context?.team && <span>{project.context.team}</span>}
-                        </span>
-                        <strong>{project.name}<ArrowUpRight aria-hidden="true" /></strong>
-                        <span className="home-project-subtitle">{project.subtitle}</span>
-                        <span className="home-project-tech">{project.technologies.slice(0, 4).map((tech) => <span key={tech}>{tech}</span>)}</span>
-                      </button>
-                    ))}
-                  </div>
-                </section>
-              </div>
-            )}
+            {activeView === 'home' && <AgentChat messages={agentMessages} onAsk={askAgent} onNavigate={navigate} onSettled={settleAgentMessage} busy={agentBusy} />}
 
             {activeThread ? <WorkConversation key={activeView} thread={activeThread} replies={sessionReplies[activeView] ?? []} pending={pendingReply?.view === activeView ? pendingReply.reply : null} onAsk={askQuestion} onOpenReview={() => setIsReviewOpen(true)} /> : activeProject && <ProjectShowcase project={activeProject.project} index={activeProject.index} question={projectQuestion} onOpenReview={() => setIsReviewOpen(true)} />}
             {activeView === 'experience' && <Experience />}
@@ -309,7 +260,7 @@ export default function App() {
             {activeThread && <div className="conversation-followups" aria-label="추천 후속 질문">
               {followupQuestions.map(question => <button type="button" key={question} disabled={!!pendingReply} onClick={() => addFollowup(question)}>{question}</button>)}
             </div>}
-            {isCommandOpen && (!activeThread || query.startsWith('/')) && (
+            {isCommandMenuVisible && (
               <div className="command-menu" id="portfolio-command-menu" role="listbox" aria-label="탐색 명령">
                 <div className="command-menu-heading"><span>빠른 탐색</span><kbd>ESC</kbd></div>
                 {filteredCommands.length > 0 ? filteredCommands.map((command) => (
@@ -322,8 +273,8 @@ export default function App() {
               </div>
             )}
             {!isDetailComposer && <div className="workspace-context" aria-label="현재 포트폴리오 정보">
-              <span><BriefcaseBusiness aria-hidden="true" /> Portfolio</span>
-              <span><Code2 aria-hidden="true" /> Product-minded</span>
+              <span><Bot aria-hidden="true" /> 임태욱 agent</span>
+              <span><ShieldCheck aria-hidden="true" /> 기록 기반 답변</span>
               <a href={profile.githubUrl} target="_blank" rel="noreferrer"><GitBranch aria-hidden="true" /> {profile.githubHandle}</a>
             </div>}
             <form className="command-composer" onSubmit={submitQuery}>
@@ -337,14 +288,14 @@ export default function App() {
                 onKeyDown={(event) => { if (event.key === 'Escape') setIsCommandOpen(false) }}
                 placeholder={activeThread ? '선택 이유·한계·담당 역할을 물어보세요' : composerPlaceholder}
                 autoComplete="off"
-                aria-expanded={isCommandOpen && (!activeThread || query.startsWith('/'))}
+                aria-expanded={isCommandMenuVisible}
                 aria-controls="portfolio-command-menu"
               />
               <div className="composer-footer">
                 {isDetailComposer
                   ? <button className="composer-context-action" type="button" onClick={() => document.getElementById('portfolio-query')?.focus()}><Plus aria-hidden="true" /><span>{activeProject ? '프로젝트 질문' : '선택 항목 질문'}</span></button>
                   : <span>{helperText}</span>}
-                <button type="submit" aria-label="탐색하기" disabled={!query.trim() || !!pendingReply}><ArrowUp aria-hidden="true" /></button>
+                <button type="submit" aria-label="탐색하기" disabled={!query.trim() || !!pendingReply || (agentBusy && !activeThread && !query.trimStart().startsWith('/'))}><ArrowUp aria-hidden="true" /></button>
               </div>
             </form>
           </div>

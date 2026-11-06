@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { BookOpenText, BriefcaseBusiness, ChevronRight, CircleHelp, FileText, Folder, GitBranch, Home, Layers3, Mail, Moon, Settings, Sun, X } from 'lucide-react'
+import { BookOpenText, Bot, BriefcaseBusiness, ChevronRight, CircleHelp, FileText, Folder, GitBranch, Layers3, Mail, Moon, Settings, Sun, X } from 'lucide-react'
 import { projects, projectThreads } from '../data/projects'
 import type { Theme } from '../App'
 import { mailtoUrl, profile } from '../data/profile'
@@ -55,7 +55,7 @@ export function Sidebar({ activeView, isOpen, onClose, onNavigate, theme, onTogg
 
         <nav className="sidebar-navigation" aria-label="Portfolio navigation">
           <button className={activeView === 'home' ? 'is-active' : ''} type="button" onClick={() => onNavigate('home')}>
-            <Home aria-hidden="true" /><span>Overview</span>
+            <Bot aria-hidden="true" /><span>Ask Agent</span>
           </button>
           <a href="https://github.com/study734" target="_blank" rel="noreferrer">
             <GitBranch aria-hidden="true" /><span>GitHub</span><ChevronRight className="nav-tail" aria-hidden="true" />

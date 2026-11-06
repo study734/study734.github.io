@@ -6,14 +6,16 @@ import App from './App'
 afterEach(() => { cleanup(); vi.useRealTimers(); vi.unstubAllGlobals(); window.history.replaceState(null, '', '/') })
 
 const finishAnswer = () => act(() => { vi.advanceTimersByTime(1000) })
+/** agent는 단계마다 타이머를 새로 걸어서, 매 단계 React 반영을 기다리며 진행시킵니다 */
+const finishAgent = () => { for (let i = 0; i < 30; i++) act(() => { vi.advanceTimersByTime(500) }) }
 
 describe('workspace portfolio app', () => {
   test('renders the overview and opens project evidence', () => {
     render(<App />)
 
-    expect(screen.getByRole('heading', { level: 1, name: /임태욱은 무엇을/ })).toBeInTheDocument()
-    expect(screen.getByText(/Backend, Security, AI/)).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Overview' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { level: 1, name: /임태욱에 대해/ })).toBeInTheDocument()
+    expect(within(screen.getByLabelText('추천 질문')).getAllByRole('button').length).toBeGreaterThan(3)
+    expect(screen.getByRole('button', { name: 'Ask Agent' })).toBeInTheDocument()
     expect(screen.queryByLabelText('현재 대화')).not.toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'GitHub' })).toHaveAttribute('href', 'https://github.com/study734')
 
@@ -26,10 +28,10 @@ describe('workspace portfolio app', () => {
     expect(screen.getByRole('textbox', { name: '포트폴리오 탐색' })).toHaveAttribute('placeholder', '선택 이유·한계·담당 역할을 물어보세요')
   })
 
-  test('uses the command composer to navigate', () => {
+  test('uses slash commands in the composer to navigate', () => {
     render(<App />)
     const query = screen.getByRole('textbox', { name: '포트폴리오 탐색' })
-    fireEvent.change(query, { target: { value: '기술 스택' } })
+    fireEvent.change(query, { target: { value: '/기술 스택' } })
     fireEvent.click(screen.getByRole('button', { name: '탐색하기' }))
     expect(screen.getByRole('heading', { level: 1, name: 'Core Stack' })).toBeInTheDocument()
   })
@@ -129,7 +131,7 @@ describe('workspace portfolio app', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'GearVia' }))
     expect(screen.queryByRole('button', { name: 'AI 주간 보고서는 어떻게 검증했나요?' })).not.toBeInTheDocument()
-    expect(screen.getByRole('heading', { level: 1, name: /임태욱은 무엇을/ })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { level: 1, name: /임태욱에 대해/ })).toBeInTheDocument()
 
     fireEvent.click(screen.getByRole('button', { name: 'GearVia' }))
     expect(screen.getByRole('button', { name: 'AI 주간 보고서는 어떻게 검증했나요?' })).toBeInTheDocument()
@@ -172,9 +174,12 @@ describe('workspace portfolio app', () => {
     expect(screen.getByRole('button', { name: '왼쪽 패널 전환' })).toHaveAttribute('title', '왼쪽 패널 열기')
   })
 
-  test('lists every project on the overview and opens one from its card', () => {
+  test('lists every project when asked and opens one from its card', () => {
+    vi.useFakeTimers()
     render(<App />)
-    const list = screen.getByRole('region', { name: 'Selected Projects' })
+    fireEvent.click(screen.getByRole('button', { name: /어떤 프로젝트를 했나요/ }))
+    finishAgent()
+    const list = screen.getByLabelText('프로젝트 목록')
     fireEvent.click(within(list).getByRole('button', { name: /GearVia On-Premise/ }))
     expect(screen.getByText(/GearVia On-Premise에서 어떤 문제를/)).toBeInTheDocument()
     expect(window.location.hash).toBe('#/project-1')
@@ -194,12 +199,54 @@ describe('workspace portfolio app', () => {
       window.history.replaceState(null, '', '/#/')
       window.dispatchEvent(new PopStateEvent('popstate'))
     })
-    expect(screen.getByRole('heading', { level: 1, name: /임태욱은 무엇을/ })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { level: 1, name: /임태욱에 대해/ })).toBeInTheDocument()
   })
 
   test('opens the contact view from the top bar', () => {
     render(<App />)
     fireEvent.click(screen.getByRole('button', { name: '연락처' }))
     expect(screen.getByRole('link', { name: /EMAIL/ })).toHaveAttribute('href', expect.stringMatching(/^mailto:/))
+  })
+
+  test('agent shows its work, then a grounded answer with sources and followups', () => {
+    vi.useFakeTimers()
+    render(<App />)
+    const query = screen.getByRole('textbox', { name: '포트폴리오 탐색' })
+    fireEvent.change(query, { target: { value: '벡터 DB 없이 시작한 이유는?' } })
+    fireEvent.click(screen.getByRole('button', { name: '탐색하기' }))
+
+    expect(screen.getByText('벡터 DB 없이 시작한 이유는?')).toBeInTheDocument()
+    expect(screen.getByRole('status')).toHaveTextContent('질문 이해')
+    expect(screen.getByRole('button', { name: '탐색하기' })).toBeDisabled()
+    finishAgent()
+
+    expect(screen.queryByRole('status')).not.toBeInTheDocument()
+    expect(screen.getByText('벡터 DB 없이 MySQL BLOB + 메모리 코사인 탐색으로 시작')).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: /3단계 작업/ }))
+    expect(screen.getByLabelText('agent 작업 단계')).toHaveTextContent(/기록 \d+개 중 \d건 일치/)
+    const sources = screen.getByLabelText('답변 근거')
+    fireEvent.click(within(sources).getAllByRole('button')[0])
+    expect(window.location.hash).toMatch(/^#\/project-0/)
+  })
+
+  test('agent declines questions it has no record for', () => {
+    vi.useFakeTimers()
+    render(<App />)
+    fireEvent.change(screen.getByRole('textbox', { name: '포트폴리오 탐색' }), { target: { value: '좋아하는 음식은?' } })
+    fireEvent.click(screen.getByRole('button', { name: '탐색하기' }))
+    finishAgent()
+    expect(screen.getByText(/근거를 찾지 못했어요/)).toBeInTheDocument()
+    expect(screen.queryByLabelText('답변 근거')).not.toBeInTheDocument()
+  })
+
+  test('agent conversation survives visiting another view', () => {
+    vi.useFakeTimers()
+    render(<App />)
+    fireEvent.click(screen.getByRole('button', { name: /강점이 뭔가요/ }))
+    finishAgent()
+    fireEvent.click(screen.getByRole('button', { name: 'Experience' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Ask Agent' }))
+    expect(screen.getByText('강점이 뭔가요?')).toBeInTheDocument()
+    expect(screen.queryByRole('status')).not.toBeInTheDocument()
   })
 })
