@@ -62,8 +62,9 @@ export function BriefDeck({ onClose, onNavigate }: BriefDeckProps) {
             {briefSlides.map((slide, i) => <span key={slide.id} className={i < index ? 'done' : i === index ? 'active' : ''} />)}
           </div>
           <div className="brief-top-row">
+            <span className="brief-file" aria-hidden="true">brief/{String(index + 1).padStart(2, '0')}-{briefSlides[index].id}.md</span>
             <span className="brief-count" aria-live="polite">{index + 1} / {briefSlides.length}</span>
-            <button type="button" className="brief-skip" onClick={() => leaveTo('home')}>전체 포트폴리오 보기 <ArrowRight aria-hidden="true" /></button>
+            <button type="button" className="brief-skip" onClick={() => leaveTo('home')}>전체 보기 <ArrowRight aria-hidden="true" /></button>
             <button type="button" className="brief-close" aria-label="요약 닫기" onClick={close}><X aria-hidden="true" /></button>
           </div>
         </div>

@@ -224,7 +224,7 @@ export default function App() {
 
         <main className="workspace-main">
           <section className={`workspace-content ${isHome ? '' : 'is-page'}`} tabIndex={-1}>
-            {isHome && <AgentChat messages={agentMessages} onAsk={askAgent} onNavigate={navigate} onSettled={settleAgentMessage} onChooseAudience={chooseAudience} busy={agentBusy} />}
+            {isHome && <AgentChat messages={agentMessages} onAsk={askAgent} onNavigate={navigate} onSettled={settleAgentMessage} onChooseAudience={chooseAudience} onOpenBrief={openBrief} busy={agentBusy} />}
             {activeThread && activeProject
               ? <WorkConversation key={activeView} thread={activeThread} projectName={activeProject.project.name} onAsk={askAgent} />
               : activeProject && <ProjectShowcase key={activeView} project={activeProject.project} index={activeProject.index} threads={projectThreads[activeProject.index]} onNavigate={navigate} onAsk={askAgent} />}

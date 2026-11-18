@@ -12,9 +12,12 @@ describe('workspace portfolio app', () => {
 
   test('renders the assistant home and opens a project case page from the sidebar', () => {
     render(<App />)
-    expect(screen.getByRole('heading', { level: 1, name: /비서예요/ })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { level: 1, name: /임태욱/ })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Ask Agent' })).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'GitHub' })).toHaveAttribute('href', 'https://github.com/study734')
+    for (const link of screen.getAllByRole('link', { name: 'GitHub' })) expect(link).toHaveAttribute('href', 'https://github.com/study734')
+    fireEvent.click(screen.getByRole('button', { name: /30초 요약 보기/ }))
+    expect(screen.getByRole('dialog', { name: /30초 요약/ })).toBeInTheDocument()
+    fireEvent.keyDown(screen.getByRole('dialog'), { key: 'Escape' })
     expect(screen.queryByRole('button', { name: /GearVia ME/ })).not.toBeInTheDocument()
 
     fireEvent.click(screen.getByRole('button', { name: 'AI 주간 보고서는 어떻게 검증했나요?' }))
@@ -89,7 +92,7 @@ describe('workspace portfolio app', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'GearVia' }))
     expect(screen.queryByRole('button', { name: 'AI 주간 보고서는 어떻게 검증했나요?' })).not.toBeInTheDocument()
-    expect(screen.getByRole('heading', { level: 1, name: /비서예요/ })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { level: 1, name: /임태욱/ })).toBeInTheDocument()
 
     fireEvent.click(screen.getByRole('button', { name: 'GearVia' }))
     expect(screen.getByRole('button', { name: 'AI 주간 보고서는 어떻게 검증했나요?' })).toBeInTheDocument()
@@ -116,7 +119,7 @@ describe('workspace portfolio app', () => {
       window.history.replaceState(null, '', '/#/')
       window.dispatchEvent(new PopStateEvent('popstate'))
     })
-    expect(screen.getByRole('heading', { level: 1, name: /비서예요/ })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { level: 1, name: /임태욱/ })).toBeInTheDocument()
   })
 
   test('opens the contact view from the top bar', () => {
@@ -190,7 +193,7 @@ describe('workspace portfolio app', () => {
     window.history.replaceState(null, '', '/#/brief')
     render(<App />)
     const brief = screen.getByRole('dialog', { name: /30초 요약/ })
-    fireEvent.click(within(brief).getByRole('button', { name: /전체 포트폴리오 보기/ }))
+    fireEvent.click(within(brief).getByRole('button', { name: /전체 보기/ }))
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
     expect(screen.getByRole('heading', { name: '어떤 일로 오셨어요?' })).toBeInTheDocument()
   })

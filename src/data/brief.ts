@@ -74,3 +74,12 @@ export const briefSlides: BriefSlide[] = [
     body: `${profile.name} · ${profile.role}`,
   },
 ]
+
+const decisionCount = projects.reduce((sum, project) => sum + (project.decisions?.length ?? 0), 0)
+
+/** 첫 화면에 바로 보이는 근거 3개. 모두 projects.ts 기록에서 계산합니다. */
+export const homeProof: { value: string; label: string }[] = [
+  { value: `${decisionCount}건`, label: '이유까지 기록한 기술 판단' },
+  ...(commitCount ? [{ value: `${commitCount}건`, label: `${onPremise.name} 기여 커밋` }] : []),
+  { value: '403→200', label: '설치 후 로그인 장애 해결' },
+]

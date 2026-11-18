@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState } from 'react'
-import { ArrowUpRight, BriefcaseBusiness, Check, ChevronDown, Code2, Compass, CornerDownRight, ExternalLink, GitBranch, Mail, Search } from 'lucide-react'
+import { ArrowUpRight, BriefcaseBusiness, Check, ChevronDown, Code2, Compass, CornerDownRight, ExternalLink, GitBranch, Mail, Play, Search } from 'lucide-react'
 import { audienceOptions, starterQuestions, type AgentRun, type Audience } from '../agent/engine'
 import { AgentHandoff } from './AgentHandoff'
 import { CopyEmailButton } from './CopyEmailButton'
 import { mailtoUrl, profile } from '../data/profile'
 import { projects } from '../data/projects'
+import { homeProof } from '../data/brief'
 import type { WorkspaceView } from './Sidebar'
 
 export interface AgentMessage { id: number; question: string; run: AgentRun; animate: boolean }
@@ -15,6 +16,7 @@ interface AgentChatProps {
   onNavigate: (view: WorkspaceView) => void
   onSettled: (id: number) => void
   onChooseAudience: (audience: Audience) => void
+  onOpenBrief: () => void
   busy: boolean
 }
 
@@ -24,7 +26,7 @@ const STEP_MS = 420
 const BLOCK_MS = 160
 const prefersReducedMotion = () => !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
 
-export function AgentChat({ messages, onAsk, onNavigate, onSettled, onChooseAudience, busy }: AgentChatProps) {
+export function AgentChat({ messages, onAsk, onNavigate, onSettled, onChooseAudience, onOpenBrief, busy }: AgentChatProps) {
   const latest = useRef<HTMLDivElement>(null)
   useEffect(() => {
     if (messages.length) latest.current?.scrollIntoView?.({ block: 'start', behavior: prefersReducedMotion() ? 'auto' : 'smooth' })
@@ -34,20 +36,24 @@ export function AgentChat({ messages, onAsk, onNavigate, onSettled, onChooseAudi
     return (
       <div className="agent-intro">
         <div className="agent-avatar is-large" aria-hidden="true">TW</div>
-        <p className="eyebrow">PORTFOLIO ASSISTANT</p>
-        <h1>안녕하세요,<br />{profile.name} 님의 비서예요</h1>
+        <p className="eyebrow">BACKEND · AI-INTEGRATED WEB DEVELOPER</p>
+        <h1>{profile.name}<br /><span className="agent-intro-tagline">보안을 아는 백엔드 개발자</span></h1>
         <p className="agent-intro-copy">
-          태욱 님에 대해 궁금한 걸 물어보시면,<br />{' '}
-          정리해 둔 기록을 근거로 소개해 드릴게요.
+          Java · Spring Boot 서비스에 AI · RAG를 붙이고,<br />{' '}
+          누가 어떤 데이터에 접근하는지를 코드와 테스트로 지킵니다.
         </p>
-        <p className="home-profile">
-          <span className="home-profile-dot" aria-hidden="true" />
-          <strong>{profile.name}</strong>
-          <span>{profile.summary}</span>
-        </p>
+        <ul className="home-proof" aria-label="대표 근거">
+          {homeProof.map((item) => <li key={item.label}><strong>{item.value}</strong><span>{item.label}</span></li>)}
+        </ul>
+        <div className="home-cta">
+          <button type="button" className="home-cta-primary" onClick={onOpenBrief}><Play aria-hidden="true" />30초 요약 보기</button>
+          <a href={mailtoUrl}><Mail aria-hidden="true" />이메일</a>
+          <a href={profile.githubUrl} target="_blank" rel="noreferrer"><GitBranch aria-hidden="true" />GitHub</a>
+        </div>
 
         <section className="agent-audience" aria-labelledby="agent-audience-title">
           <h2 id="agent-audience-title">어떤 일로 오셨어요?</h2>
+          <p className="agent-audience-copy">비서가 목적에 맞게 안내해 드려요</p>
           <div>
             {audienceOptions.map(({ id, label, description }) => {
               const Icon = audienceIcons[id]
