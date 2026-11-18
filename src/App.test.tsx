@@ -169,16 +169,30 @@ describe('workspace portfolio app', () => {
     expect(screen.queryByRole('status')).not.toBeInTheDocument()
   })
 
-  test('assistant greets visitors and tailors the briefing to a recruiter', () => {
-    vi.useFakeTimers()
+  test('recruiters get a swipeable 30-second brief with its own link', () => {
     render(<App />)
     expect(screen.getByRole('heading', { name: '어떤 일로 오셨어요?' })).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: /채용 담당자예요/ }))
-    expect(screen.getByText('채용 검토 중이에요. 핵심만 알려주세요.')).toBeInTheDocument()
-    finishAgent()
-    expect(screen.getByText(/30초 분량으로 정리해 드릴게요/)).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: /EMAIL/ })).toHaveAttribute('href', expect.stringMatching(/^mailto:/))
-    expect(within(screen.getByLabelText('이어서 물어보기')).getByRole('button', { name: /왜 뽑아야 하나요/ })).toBeInTheDocument()
+    const brief = screen.getByRole('dialog', { name: /30초 요약/ })
+    expect(window.location.hash).toBe('#/brief')
+    expect(within(brief).getByText('1 / 6')).toBeInTheDocument()
+    fireEvent.keyDown(brief, { key: 'ArrowDown' })
+    expect(within(brief).getByText('2 / 6')).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: '다음 카드' }))
+    expect(within(brief).getByText('3 / 6')).toBeInTheDocument()
+    expect(within(brief).getByRole('link', { name: /EMAIL/, hidden: true })).toHaveAttribute('href', expect.stringMatching(/^mailto:/))
+    fireEvent.keyDown(brief, { key: 'Escape' })
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    expect(window.location.hash).toBe('#/')
+  })
+
+  test('opening #/brief directly shows the brief, and "full portfolio" leaves it', () => {
+    window.history.replaceState(null, '', '/#/brief')
+    render(<App />)
+    const brief = screen.getByRole('dialog', { name: /30초 요약/ })
+    fireEvent.click(within(brief).getByRole('button', { name: /전체 포트폴리오 보기/ }))
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: '어떤 일로 오셨어요?' })).toBeInTheDocument()
   })
 
   test('hand-off opens a prepared email with the visitor question', () => {

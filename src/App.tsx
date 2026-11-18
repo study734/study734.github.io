@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } fro
 import { ArrowUp, Bot, GitBranch, ShieldCheck, Sparkles } from 'lucide-react'
 import { audienceOptions, runAgent, tourFor, type Audience } from './agent/engine'
 import { AgentChat, type AgentMessage } from './components/AgentChat'
+import { BriefDeck } from './components/BriefDeck'
 import { Header } from './components/Header'
 import { ProjectShowcase } from './components/ProjectShowcase'
 import { Sidebar, type WorkspaceView } from './components/Sidebar'
@@ -24,6 +25,9 @@ const viewFromHash = (hash: string): WorkspaceView => {
   return 'home'
 }
 const hashFromView = (view: WorkspaceView) => (view === 'home' ? '#/' : `#/${view}`)
+/** #/brief 는 홈 위에 열리는 30초 요약 카드입니다. 이력서·메일에 이 링크만 넣어도 됩니다. */
+const BRIEF_HASH = '#/brief'
+const isBriefHash = (hash: string) => hash.replace(/\/$/, '') === BRIEF_HASH
 
 export type Theme = 'dark' | 'light'
 
@@ -46,6 +50,7 @@ const newId = (() => { let id = 0; return () => ++id })()
 
 export default function App() {
   const [activeView, setActiveView] = useState<WorkspaceView>(() => viewFromHash(window.location.hash))
+  const [isBriefOpen, setIsBriefOpen] = useState(() => isBriefHash(window.location.hash))
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
   const [query, setQuery] = useState('')
@@ -101,6 +106,7 @@ export default function App() {
   }
 
   const navigate = (view: WorkspaceView) => {
+    setIsBriefOpen(false)
     applyView(view)
     if (window.location.hash !== hashFromView(view)) window.history.pushState(null, '', hashFromView(view))
   }
@@ -109,7 +115,10 @@ export default function App() {
   applyViewRef.current = applyView
 
   useEffect(() => {
-    const syncFromUrl = () => applyViewRef.current(viewFromHash(window.location.hash))
+    const syncFromUrl = () => {
+      setIsBriefOpen(isBriefHash(window.location.hash))
+      applyViewRef.current(viewFromHash(window.location.hash))
+    }
     window.addEventListener('popstate', syncFromUrl)
     return () => window.removeEventListener('popstate', syncFromUrl)
   }, [])
@@ -150,8 +159,18 @@ export default function App() {
     if (agentBusy) return
     const option = audienceOptions.find((item) => item.id === audience)
     if (!option) return
-    setAgentMessages((current) => [...current, { id: newId(), question: option.question, run: tourFor(audience), animate: true }])
     trackEvent('audience', { audience })
+    if (audience === 'recruiter') { openBrief(); return }
+    setAgentMessages((current) => [...current, { id: newId(), question: option.question, run: tourFor(audience), animate: true }])
+  }
+
+  const openBrief = () => {
+    setIsBriefOpen(true)
+    if (window.location.hash !== BRIEF_HASH) window.history.pushState(null, '', BRIEF_HASH)
+  }
+  const closeBrief = () => {
+    setIsBriefOpen(false)
+    if (isBriefHash(window.location.hash)) window.history.pushState(null, '', hashFromView(activeView))
   }
 
   const filteredCommands = useMemo(() => {
@@ -255,6 +274,7 @@ export default function App() {
           </div>
         </main>
       </div>
+      {isBriefOpen && <BriefDeck onClose={closeBrief} onNavigate={navigate} />}
     </div>
   )
 }

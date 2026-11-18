@@ -66,7 +66,7 @@ const commitCount = onPremise.evidence?.find((item) => item.label.startsWith('�
 /* ---------- 방문 목적별 첫 안내 ---------- */
 
 export const audienceOptions: { id: Audience; label: string; question: string; description: string }[] = [
-  { id: 'recruiter', label: '채용 담당자예요', question: '채용 검토 중이에요. 핵심만 알려주세요.', description: '30초 요약 · 강점 · 연락처' },
+  { id: 'recruiter', label: '채용 담당자예요', question: '채용 검토 중이에요. 핵심만 알려주세요.', description: '30초 카드 요약 · 연락처' },
   { id: 'developer', label: '개발자예요', question: '개발자예요. 기술적인 이야기가 궁금해요.', description: '기술적 판단 · 코드 근거' },
   { id: 'browse', label: '그냥 둘러보러 왔어요', question: '그냥 둘러보러 왔어요.', description: '프로젝트 소개' },
 ]
